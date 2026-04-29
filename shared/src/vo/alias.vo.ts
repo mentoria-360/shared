@@ -1,9 +1,14 @@
 import { Result, ValueObject, ValueObjectConfig } from '../base';
+import ValidationError from '../base/validation.error';
 
 export class Alias extends ValueObject<string, ValueObjectConfig> {
   private static readonly INVALID_ALIAS = 'INVALID_ALIAS';
 
-  private constructor(value: string, config?: ValueObjectConfig) {
+  constructor(value: string, config?: ValueObjectConfig) {
+    if (!Alias.isValid(value)) {
+      throw new ValidationError({ code: 'alias.invalid' });
+    }
+
     super(value, config);
   }
 
@@ -35,6 +40,25 @@ export class Alias extends ValueObject<string, ValueObjectConfig> {
     }
 
     return `${formattedValue}-`;
+  }
+
+  public static isValid(value: string): boolean {
+    if (typeof value !== 'string') {
+      return false;
+    }
+
+    const normalized = value.toLowerCase();
+    if (value !== normalized) {
+      return false;
+    }
+    if (normalized !== normalized.trim()) {
+      return false;
+    }
+    if (/\s/.test(normalized)) {
+      return false;
+    }
+
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized);
   }
 
   public static tryCreate(value: string, config?: ValueObjectConfig): Result<Alias> {

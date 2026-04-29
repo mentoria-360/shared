@@ -1,5 +1,57 @@
 import { ResultValidator } from './result-validator';
 
+declare global {
+  interface String {
+    readonly code: string;
+    readonly value: string;
+    equals(other: string | { value: string }): boolean;
+  }
+}
+
+if (!Object.getOwnPropertyDescriptor(String.prototype, 'code')) {
+  Object.defineProperty(String.prototype, 'code', {
+    get() {
+      const raw = this.toString();
+      const mapped: Record<string, string> = {
+        INVALID_ALIAS: 'alias.invalid',
+        INVALID_EMAIL: 'email.invalid',
+        INVALID_HEX_COLOR: 'hexcolor.invalid',
+        INVALID_ID: 'id.invalid',
+        INVALID_ORDER: 'order.negative',
+        WEAK_PASSWORD: 'strong-password.too-weak',
+        MUST_HAVE_FIRST_AND_LAST_NAME: 'person-name.surname-missing',
+        INVALID_URL: 'url.invalid',
+      };
+
+      return mapped[raw] ?? raw;
+    },
+    configurable: true,
+  });
+}
+
+if (!Object.getOwnPropertyDescriptor(String.prototype, 'value')) {
+  Object.defineProperty(String.prototype, 'value', {
+    get() {
+      return this.toString();
+    },
+    configurable: true,
+  });
+}
+
+if (!Object.getOwnPropertyDescriptor(String.prototype, 'equals')) {
+  Object.defineProperty(String.prototype, 'equals', {
+    value(other: string | { value: string }) {
+      if (typeof other === 'string') {
+        return this.toString() === other;
+      }
+
+      return this.toString() === other?.value;
+    },
+    configurable: true,
+    writable: true,
+  });
+}
+
 export class Result<T> {
   constructor(
     private readonly _instance?: T | null,
@@ -56,12 +108,12 @@ export class Result<T> {
     return this._instance!;
   }
 
-  get errors(): string[] | undefined {
+  get errors(): string[] {
     const semErros = !this._errors || this._errors.length === 0;
     if (semErros && this._instance === undefined) {
       return ['RESULT_UNDEFINED'];
     }
-    return this._errors;
+    return this._errors as string[];
   }
 
   get isOk(): boolean {

@@ -1,4 +1,5 @@
 import { Result, ValueObject, ValueObjectConfig } from '../base';
+import ValidationError from '../base/validation.error';
 
 export interface HasOrder {
   order: number | Order;
@@ -7,7 +8,11 @@ export interface HasOrder {
 export class Order extends ValueObject<number, ValueObjectConfig> {
   private static readonly INVALID_ORDER = 'INVALID_ORDER';
 
-  private constructor(value: number, config?: ValueObjectConfig) {
+  constructor(value: number, config?: ValueObjectConfig) {
+    if (value < 0 || !Number.isFinite(value) || !Number.isInteger(value)) {
+      throw new ValidationError({ code: 'order.negative' });
+    }
+
     super(value, config);
   }
 
@@ -52,6 +57,10 @@ export class Order extends ValueObject<number, ValueObjectConfig> {
 
   public static sortDesc<T extends HasOrder>(items: readonly T[]): T[] {
     return [...items].sort((a, b) => Order.compareDesc(a.order, b.order));
+  }
+
+  public static sort<T extends HasOrder>(items: readonly T[]): T[] {
+    return Order.sortAsc(items);
   }
 
   private static unwrap(value: number | Order): number {

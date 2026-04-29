@@ -67,7 +67,22 @@ export abstract class Entity<Type, Props extends EntityProps> {
 
   public cloneWith(overrides: Partial<Props>): Result<Type> {
     const { props } = this.cloneProps(overrides);
-    return (this.constructor as any).tryCreate(props);
+    const constructorRef = this.constructor as any;
+    const tryCreate = constructorRef.tryCreate;
+
+    if (typeof tryCreate === 'function') {
+      return tryCreate.call(constructorRef, props);
+    }
+
+    try {
+      return Result.ok(new constructorRef(props));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return Result.fail(error.message);
+      }
+
+      return Result.fail('ENTITY_CLONE_ERROR');
+    }
   }
 
   public clone(overrides: Partial<Props>): Result<Type> {

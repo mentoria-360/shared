@@ -4,8 +4,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class Id extends ValueObject<string, ValueObjectConfig> {
   protected static readonly INVALID_ID: string = 'INVALID_ID';
-  protected constructor(value: string, config?: ValueObjectConfig) {
-    super(value, config);
+  constructor(value: string, config?: ValueObjectConfig) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const idValue = value?.trim().toLowerCase();
+    if (!uuidRegex.test(idValue)) {
+      throw new Error('id.invalid');
+    }
+    super(idValue, config);
   }
 
   public static create(this: typeof Id, value?: string | undefined, config?: ValueObjectConfig): Id {
@@ -30,6 +35,10 @@ export class Id extends ValueObject<string, ValueObjectConfig> {
     } catch (error: any) {
       return Result.fail(error.message);
     }
+  }
+
+  public static createUUID(): string {
+    return uuidv4();
   }
 
   public static required(this: typeof Id, value: string, config?: ValueObjectConfig): Result<Id> {
