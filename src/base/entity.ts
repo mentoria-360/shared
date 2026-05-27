@@ -96,10 +96,7 @@ export abstract class Entity<Type, Props extends EntityProps> {
   private diffProps(previous: Props, current: Props): EntityDiff<Props> {
     const diff: EntityDiff<Props> = {};
 
-    for (const key of new Set([
-      ...Object.keys(previous),
-      ...Object.keys(current),
-    ]) as Set<keyof Props>) {
+    for (const key of new Set([...Object.keys(previous), ...Object.keys(current)]) as Set<keyof Props>) {
       if (!this.isEqual(previous[key], current[key])) {
         diff[key] = {
           previous: previous[key],
@@ -136,12 +133,7 @@ export abstract class Entity<Type, Props extends EntityProps> {
       return left.getTime() === right.getTime();
     }
 
-    if (
-      left &&
-      right &&
-      typeof left === 'object' &&
-      typeof right === 'object'
-    ) {
+    if (left && right && typeof left === 'object' && typeof right === 'object') {
       if (Array.isArray(left) || Array.isArray(right)) {
         if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
           return false;

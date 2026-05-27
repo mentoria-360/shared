@@ -19,11 +19,7 @@ export class Id extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(
-    this: typeof Id,
-    value?: string | undefined,
-    config?: ValueObjectConfig,
-  ): Result<Id> {
+  public static tryCreate(this: typeof Id, value?: string | undefined, config?: ValueObjectConfig): Result<Id> {
     try {
       const hasValue = value !== undefined && value !== null && value !== '';
       const idValue = hasValue ? value!.trim().toLowerCase() : uuidv4();

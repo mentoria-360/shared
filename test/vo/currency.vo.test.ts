@@ -14,7 +14,12 @@ describe('Currency', () => {
   });
 
   test('should create valid currency with normalized values', () => {
-    const result = Currency.tryCreate({ code: ' brl ', symbol: ' R$ ', countryCode: ' br ', name: ' Real Brasileiro ' });
+    const result = Currency.tryCreate({
+      code: ' brl ',
+      symbol: ' R$ ',
+      countryCode: ' br ',
+      name: ' Real Brasileiro ',
+    });
 
     expect(result.isOk).toBe(true);
     expect(result.instance.code).toBe('BRL');
