@@ -1,4 +1,5 @@
-import { Entity, EntityProps, Result } from '../../src/base';
+import { Entity, EntityProps } from '../../src/base/entity';
+import { Result } from '../../src/base/result';
 
 export interface TestEntityProps extends EntityProps {
   number: number;
@@ -13,6 +14,7 @@ export class TestEntity extends Entity<TestEntity, TestEntityProps> {
   get number() {
     return this.props.number;
   }
+
   get obj() {
     return this.props.obj;
   }
