@@ -22,3 +22,12 @@ test('Deve tentar criar uma senha inválida', () => {
   expect(password.isOk).toBe(false);
   expect(password.errors[0]?.code).toBe('password.empty');
 });
+
+test('Deve criar uma senha válida via create', () => {
+  const password = Password.create('secret123');
+  expect(password.value).toBe('secret123');
+});
+
+test('Deve lançar ao criar senha inválida via create', () => {
+  expect(() => Password.create('')).toThrow();
+});

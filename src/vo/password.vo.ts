@@ -1,8 +1,8 @@
 import { Result } from '../base';
-import Metadata from '../base/metadata';
-import ValidationError from '../base/validation.error';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
-export default class Password {
+export class Password {
   constructor(
     readonly value?: string,
     readonly meta?: Metadata,
@@ -22,6 +22,6 @@ export default class Password {
   }
 
   static tryCreate(value?: string, meta?: Metadata): Result<Password> {
-    return Result.trySync(() => new Password(value, meta));
+    return Result.try(() => new Password(value, meta));
   }
 }

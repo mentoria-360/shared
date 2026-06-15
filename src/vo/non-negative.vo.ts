@@ -1,8 +1,8 @@
 import { Result } from '../base';
-import ValidationError from '../base/validation.error';
-import Metadata from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
+import { Metadata } from '../base/metadata';
 
-export default class NonNegative {
+export class NonNegative {
   constructor(
     readonly value: number,
     meta?: Metadata,
@@ -22,6 +22,6 @@ export default class NonNegative {
   }
 
   static tryCreate(value: number, meta?: Metadata): Result<NonNegative> {
-    return Result.trySync(() => new NonNegative(value, meta));
+    return Result.try(() => new NonNegative(value, meta));
   }
 }

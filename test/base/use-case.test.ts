@@ -1,7 +1,7 @@
 import { Result } from '../../src';
-import { ResultUseCase } from '../../src/base/use-case';
+import { UseCase } from '../../src/base/use-case';
 
-class TestUseCase implements ResultUseCase<string, number> {
+class TestUseCase implements UseCase<string, number> {
   async execute(input: string): Promise<Result<number>> {
     if (!input) return Result.fail('EMPTY_INPUT');
 
@@ -9,7 +9,7 @@ class TestUseCase implements ResultUseCase<string, number> {
   }
 }
 
-describe('ResultUseCase', () => {
+describe('UseCase', () => {
   test('should return Result.ok on success', async () => {
     const useCase = new TestUseCase();
     const result = await useCase.execute('hello');

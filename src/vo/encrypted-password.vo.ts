@@ -1,8 +1,8 @@
 import { Result } from '../base';
-import Metadata from '../base/metadata';
-import ValidationError from '../base/validation.error';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
-export default class EncryptedPassword {
+export class EncryptedPassword {
   static readonly REGEX = /^\$2[ayb]\$[0-9]{2}\$[A-Za-z0-9\.\/]{53}$/;
 
   constructor(
@@ -24,7 +24,7 @@ export default class EncryptedPassword {
   }
 
   static tryCreate(value?: string, meta?: Metadata): Result<EncryptedPassword> {
-    return Result.trySync(() => new EncryptedPassword(value, meta));
+    return Result.try(() => new EncryptedPassword(value, meta));
   }
 
   static isValid(hash: string): boolean {

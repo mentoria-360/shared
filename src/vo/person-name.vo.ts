@@ -12,7 +12,7 @@ export class PersonName extends ValueObject<string, PersonNameConfig> {
   }
 
   get firstName(): string {
-    return this.value.split(/\s+/)[0] ?? '';
+    return this.value.split(/\s+/)[0]!;
   }
 
   get lastNames(): string[] {
@@ -21,11 +21,11 @@ export class PersonName extends ValueObject<string, PersonNameConfig> {
 
   get lastName(): string {
     const names = this.lastNames;
-    return names[names.length - 1] ?? '';
+    return names[names.length - 1]!;
   }
 
   get initials(): string {
-    return `${this.firstName[0] ?? ''}${this.lastName[0] ?? ''}`;
+    return `${this.firstName.charAt(0)}${this.lastName.charAt(0)}`;
   }
 
   public static create(value: string, config?: PersonNameConfig): PersonName {
@@ -58,8 +58,8 @@ export class PersonName extends ValueObject<string, PersonNameConfig> {
     if (words.length < 2) {
       throw new Error(PersonName.MUST_HAVE_FIRST_AND_LAST_NAME);
     }
-    const first = words[0] ?? '';
-    const last = words[words.length - 1] ?? '';
+    const first = words[0]!;
+    const last = words[words.length - 1]!;
     if (first.length < 2 || last.length < 2) {
       throw new Error(PersonName.TOO_SHORT);
     }

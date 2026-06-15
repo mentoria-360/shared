@@ -1,5 +1,5 @@
 import { ValidationError } from '../../src';
-import type Message from '../../src/base/message';
+import type { Message } from '../../src/base/message';
 
 test('Deve criar um ValidationError com uma falha', () => {
   const msg: Message = {
@@ -16,13 +16,13 @@ test('Deve criar um ValidationError com uma falha', () => {
   expect(error.messages[0]).toBe(msg);
 });
 
-test("Deve usar 'validation.error' como código padrão se code não for fornecido", () => {
+test("Deve usar 'validation-error' como código padrão se code não for fornecido", () => {
   const error = new ValidationError({
     meta: { module: 'auth', object: 'user', attribute: 'email' },
   });
 
-  expect(error.codes).toBe('validation.error');
-  expect(error.message).toBe('validation.error');
+  expect(error.codes).toBe('validation-error');
+  expect(error.message).toBe('validation-error');
   expect(error.status).toBe(400);
   expect(error.messages[0]?.meta?.module).toBe('auth');
 });

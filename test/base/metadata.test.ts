@@ -1,4 +1,4 @@
-import Metadata, { MetadataProps } from '../../src/base/metadata';
+import { Metadata, MetadataProps } from '../../src/base/metadata';
 
 test('Deve criar um Metadata com valores corretos', () => {
   const props: MetadataProps = {

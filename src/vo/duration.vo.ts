@@ -1,8 +1,8 @@
-import ValidationError from '../base/validation.error';
-import Metadata from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
+import { Metadata } from '../base/metadata';
 import { Result } from '../base';
 
-export default class Duration {
+export class Duration {
   static readonly ONE_MINUTE: number = 60;
   static readonly ONE_HOUR: number = 3600;
   static readonly ONE_DAY: number = 86400;
@@ -26,7 +26,7 @@ export default class Duration {
   }
 
   static tryCreate(value: number, meta?: Metadata): Result<Duration> {
-    return Result.trySync(() => new Duration(value, meta));
+    return Result.try(() => new Duration(value, meta));
   }
 
   static zero() {

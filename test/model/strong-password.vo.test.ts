@@ -15,6 +15,14 @@ test('Deve lançar erro com senha apenas com letras', () => {
   expect(() => new StrongPassword('AbCdEfGhIj')).toThrow(error);
 });
 
+test('Deve lançar erro com senha sem letras minúsculas', () => {
+  expect(() => new StrongPassword('ABC12345!')).toThrow(error);
+});
+
+test('Deve lançar erro com senha sem caractere especial', () => {
+  expect(() => new StrongPassword('Password1')).toThrow(error);
+});
+
 test('Deve lançar erro com senha apenas com caracteres especiais', () => {
   expect(() => new StrongPassword('!@#$%¨&*()_+')).toThrow(error);
 });

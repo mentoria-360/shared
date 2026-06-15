@@ -73,15 +73,15 @@ describe('Result', () => {
     expect(failed.errors).toEqual(['ERR']);
   });
 
-  test('should execute trySync with success', () => {
-    const result = Result.trySync(() => 'done');
+  test('should execute try with success', () => {
+    const result = Result.try(() => 'done');
 
     expect(result.isOk).toBe(true);
     expect(result.instance).toBe('done');
   });
 
-  test('should execute trySync with failure', () => {
-    const result = Result.trySync(() => {
+  test('should execute try with failure', () => {
+    const result = Result.try(() => {
       throw 'SYNC_ERR';
     });
 
@@ -89,8 +89,8 @@ describe('Result', () => {
     expect(result.errors).toEqual(['SYNC_ERR']);
   });
 
-  test('should execute trySync with Error failure and map to message', () => {
-    const result = Result.trySync(() => {
+  test('should execute try with Error failure and map to message', () => {
+    const result = Result.try(() => {
       throw new Error('SYNC_ERR_OBJECT');
     });
 
@@ -98,36 +98,36 @@ describe('Result', () => {
     expect(result.errors).toEqual(['SYNC_ERR_OBJECT']);
   });
 
-  test('should execute trySync with Result return and avoid nested Result', () => {
-    const result = Result.trySync(() => Result.ok('sync-done'));
+  test('should execute try with Result return and avoid nested Result', () => {
+    const result = Result.try(() => Result.ok('sync-done'));
 
     expect(result.isOk).toBe(true);
     expect(result.instance).toBe('sync-done');
   });
 
-  test('should execute try with success', async () => {
-    const result = await Result.try(async () => Result.ok('done'));
+  test('should execute tryAsync with success', async () => {
+    const result = await Result.tryAsync(async () => Result.ok('done'));
 
     expect(result.isOk).toBe(true);
     expect(result.instance).toBe('done');
   });
 
-  test('should execute try with plain value and wrap in ok', async () => {
-    const result = await Result.try(async () => 'done');
+  test('should execute tryAsync with plain value and wrap in ok', async () => {
+    const result = await Result.tryAsync(async () => 'done');
 
     expect(result.isOk).toBe(true);
     expect(result.instance).toBe('done');
   });
 
-  test('should execute try with void callback and return ok', async () => {
-    const result = await Result.try(async () => {});
+  test('should execute tryAsync with void callback and return ok', async () => {
+    const result = await Result.tryAsync(async () => {});
 
     expect(result.isOk).toBe(true);
     expect(result.errors).toBeUndefined();
   });
 
-  test('should execute try with failure', async () => {
-    const result = await Result.try(async () => {
+  test('should execute tryAsync with failure', async () => {
+    const result = await Result.tryAsync(async () => {
       throw 'ASYNC_ERR';
     });
 
@@ -135,8 +135,8 @@ describe('Result', () => {
     expect(result.errors).toEqual(['ASYNC_ERR']);
   });
 
-  test('should execute try with Error failure and map to message', async () => {
-    const result = await Result.try(async () => {
+  test('should execute tryAsync with Error failure and map to message', async () => {
+    const result = await Result.tryAsync(async () => {
       throw new Error('ASYNC_ERR_OBJECT');
     });
 
@@ -227,6 +227,38 @@ describe('Result', () => {
     expect(validatedResult).toBe(result);
     expect(validatedResult.isOk).toBe(true);
     expect(validatedResult.instance).toBe(true);
+  });
+
+  test('should skip String.prototype property definitions when already defined', () => {
+    jest.isolateModules(() => {
+      require('../../src/base/result');
+    });
+
+    expect('INVALID_ALIAS'.code).toBe('alias.invalid');
+    expect('hello'.value).toBe('hello');
+    expect('hello'.equals('hello')).toBe(true);
+  });
+
+  describe('String.prototype.equals', () => {
+    test('should return true when compared string matches', () => {
+      expect('hello'.equals('hello')).toBe(true);
+    });
+
+    test('should return false when compared string does not match', () => {
+      expect('hello'.equals('world')).toBe(false);
+    });
+
+    test('should return true when compared object value matches', () => {
+      expect('hello'.equals({ value: 'hello' })).toBe(true);
+    });
+
+    test('should return false when compared object value does not match', () => {
+      expect('hello'.equals({ value: 'world' })).toBe(false);
+    });
+
+    test('should return false when other is nullish', () => {
+      expect('hello'.equals(null as any)).toBe(false);
+    });
   });
 
   test('should convert to string for ok and fail', () => {

@@ -46,3 +46,9 @@ test('Deve tentar criar uma url inválida', () => {
   expect(url.isOk).toBe(false);
   expect(url.errors[0]?.code).toBe(errPadrao);
 });
+
+test('Deve criar instância via subclasse URL', () => {
+  const { URL } = require('../../src');
+  const url = new URL('https://example.com');
+  expect(url.value).toBe('https://example.com');
+});

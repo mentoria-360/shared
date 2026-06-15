@@ -26,6 +26,8 @@ test('Deve validar corretamente um alias', () => {
   expect(Alias.isValid('valid123')).toBe(true);
   expect(Alias.isValid('VALID')).toBe(false);
   expect(Alias.isValid('')).toBe(false);
+  expect(Alias.isValid(123 as any)).toBe(false);
+  expect(Alias.isValid(' leading-space' as any)).toBe(false);
 });
 
 test('Deve tentar criar um alias com sucesso', () => {

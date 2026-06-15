@@ -22,3 +22,12 @@ test('Deve tentar criar um número não negativo inválido', () => {
   expect(nonNegative.isOk).toBe(false);
   expect(nonNegative.errors[0]?.code).toBe('non-negative.invalid');
 });
+
+test('Deve criar um número não negativo válido via create', () => {
+  const nonNegative = NonNegative.create(0);
+  expect(nonNegative.value).toBe(0);
+});
+
+test('Deve lançar ao criar um número negativo via create', () => {
+  expect(() => NonNegative.create(-1)).toThrow();
+});

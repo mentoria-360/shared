@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { TestEntity } from '../data/test.entity';
 import { Entity, type EntityProps } from '../../src/base/entity';
 
@@ -341,6 +342,47 @@ describe('Entity', () => {
 
       expect(result.isFailure).toBe(true);
       expect(result.errors).toEqual(['ENTITY_CLONE_ERROR']);
+    });
+  });
+
+  describe('array and date comparisons in diff', () => {
+    test('should not include equal arrays in diff', () => {
+      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
+      const result = entity.cloneProps({});
+      expect(result.diff.obj).toBeUndefined();
+    });
+
+    test('should detect element-level change in equal-length arrays', () => {
+      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
+      const result = entity.cloneProps({ obj: [1, 99, 3] });
+      expect(result.diff.obj).toBeDefined();
+    });
+
+    test('should detect array length mismatch in diff', () => {
+      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
+      const result = entity.cloneProps({ obj: [1, 2] });
+      expect(result.diff.obj).toBeDefined();
+    });
+
+    test('should detect type change from plain object to array in diff', () => {
+      const entity = TestEntity.create({ number: 1, obj: { 0: 1, 1: 2 } });
+      const result = entity.cloneProps({ obj: [1, 2] as any });
+      expect(result.diff.obj).toBeDefined();
+    });
+
+    test('should not include obj in diff when it contains equal nested dates', () => {
+      const date = new Date('2024-06-01T00:00:00.000Z');
+      const entity = TestEntity.create({ number: 1, obj: { timestamp: date } });
+      const result = entity.cloneProps({ number: 2 });
+      expect(result.diff.obj).toBeUndefined();
+    });
+
+    test('should detect date change inside array in diff', () => {
+      const d1 = new Date('2024-01-01T00:00:00.000Z');
+      const d2 = new Date('2025-01-01T00:00:00.000Z');
+      const entity = TestEntity.create({ number: 1, obj: [d1] });
+      const result = entity.cloneProps({ obj: [d2] as any });
+      expect(result.diff.obj).toBeDefined();
     });
   });
 

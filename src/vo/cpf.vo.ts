@@ -1,8 +1,8 @@
-import ValidationError from '../base/validation.error';
-import Metadata from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
+import { Metadata } from '../base/metadata';
 import { Result } from '../base';
 
-export default class Cpf {
+export class Cpf {
   readonly formatted: string;
 
   constructor(value: string, meta?: Metadata) {
@@ -28,7 +28,7 @@ export default class Cpf {
   }
 
   static tryCreate(value: string, meta?: Metadata): Result<Cpf> {
-    return Result.trySync(() => new Cpf(value, meta));
+    return Result.try(() => new Cpf(value, meta));
   }
 
   get value() {

@@ -80,3 +80,13 @@ test('Deve tentar criar uma duração inválida', () => {
   expect(duration.isOk).toBe(false);
   expect(duration.errors[0]?.code).toBe('duration.negative');
 });
+
+test('Deve criar uma duração válida via create', () => {
+  const duration = Duration.create(60);
+  expect(duration.inSeconds).toBe(60);
+});
+
+test('Deve lançar ao criar uma duração negativa via create', () => {
+  expect(() => Duration.create(-1)).toThrow();
+});
+

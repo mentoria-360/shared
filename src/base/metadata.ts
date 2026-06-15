@@ -6,7 +6,7 @@ export interface MetadataProps {
   id?: string | null;
 }
 
-export default class Metadata {
+export class Metadata {
   constructor(readonly props: MetadataProps) {}
 
   get module(): string | null | undefined {

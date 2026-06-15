@@ -1,5 +1,5 @@
 import { Result, ValueObject, ValueObjectConfig } from '../base';
-import ValidationError from '../base/validation.error';
+import { ValidationError } from '../base/validation-error';
 
 export class Url extends ValueObject<string, ValueObjectConfig> {
   private static readonly INVALID_URL = 'INVALID_URL';

@@ -22,6 +22,15 @@ test('Deve validar um CPF', () => {
   expect(Cpf.isValid('12345678909')).toBe(true);
 });
 
+test('Deve criar um CPF válido via create', () => {
+  const cpf = Cpf.create('12345678909');
+  expect(cpf.formatted).toBe('123.456.789-09');
+});
+
+test('Deve lançar ao criar um CPF inválido via create', () => {
+  expect(() => Cpf.create('12345678900')).toThrow();
+});
+
 test('Deve tentar criar um CPF com sucesso', () => {
   const cpf = Cpf.tryCreate('12345678909');
   expect(cpf.isOk).toBe(true);

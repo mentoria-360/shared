@@ -71,10 +71,10 @@ export class Result<T> {
     return new Result<T>(null);
   }
 
-  static async try<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>;
-  static async try<T>(fn: () => Promise<T>): Promise<Result<T>>;
-  static async try(fn: () => Promise<void>): Promise<Result<void>>;
-  static async try<T>(fn: () => Promise<Result<T> | T | void>): Promise<Result<T | void>> {
+  static async tryAsync<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>;
+  static async tryAsync<T>(fn: () => Promise<T>): Promise<Result<T>>;
+  static async tryAsync(fn: () => Promise<void>): Promise<Result<void>>;
+  static async tryAsync<T>(fn: () => Promise<Result<T> | T | void>): Promise<Result<T | void>> {
     try {
       const result = await fn();
       if (result instanceof Result) {
@@ -88,9 +88,9 @@ export class Result<T> {
     }
   }
 
-  static trySync<T>(fn: () => Result<T>): Result<T>;
-  static trySync<T>(fn: () => T): Result<T>;
-  static trySync<T>(fn: () => Result<T> | T): Result<T> {
+  static try<T>(fn: () => Result<T>): Result<T>;
+  static try<T>(fn: () => T): Result<T>;
+  static try<T>(fn: () => Result<T> | T): Result<T> {
     try {
       const result = fn();
       if (result instanceof Result) {
