@@ -48,7 +48,7 @@ export abstract class AbstractDomainEvent<
     this.occurredAt = props.occurredAt;
   }
 
-  protected static tryInstantiate<
+  protected static tryCreateFromProps<
     Payload extends DomainEventPayload,
     Metadata extends DomainEventMetadata,
     T extends AbstractDomainEvent<Payload, Metadata>,
@@ -62,7 +62,7 @@ export abstract class AbstractDomainEvent<
     });
   }
 
-  protected static instantiate<
+  protected static createFromProps<
     Payload extends DomainEventPayload,
     Metadata extends DomainEventMetadata,
     T extends AbstractDomainEvent<Payload, Metadata>,
@@ -70,7 +70,7 @@ export abstract class AbstractDomainEvent<
     props: AbstractDomainEventProps<Payload, Metadata>,
     factory: (props: ResolvedDomainEventProps<Payload, Metadata>) => T,
   ): T {
-    const result = AbstractDomainEvent.tryInstantiate(props, factory);
+    const result = AbstractDomainEvent.tryCreateFromProps(props, factory);
     result.validator.throwsIfFailed();
     return result.instance;
   }

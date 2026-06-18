@@ -33,7 +33,23 @@ export abstract class AggregateRoot<
 
   public override cloneWith(overrides: Partial<Props>): Result<Type> {
     const { props, diff } = this.cloneProps(overrides);
-    const clonedResult = (this.constructor as any).tryCreate(props) as Result<Type>;
+    const constructorRef = this.constructor as any;
+    const tryCreate = constructorRef.tryCreate;
+
+    let clonedResult: Result<Type>;
+    if (typeof tryCreate === 'function') {
+      clonedResult = tryCreate.call(constructorRef, props);
+    } else {
+      try {
+        clonedResult = Result.ok(new constructorRef(props));
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          clonedResult = Result.fail(error.message);
+        } else {
+          clonedResult = Result.fail('ENTITY_CLONE_ERROR');
+        }
+      }
+    }
 
     if (clonedResult.isFailure) {
       return clonedResult;

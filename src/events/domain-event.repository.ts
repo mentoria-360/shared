@@ -1,4 +1,4 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
 import { TransactionContext } from '../db/transaction.manager';
 import { DomainEvent } from './domain-event';
 

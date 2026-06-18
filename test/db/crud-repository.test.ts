@@ -5,6 +5,10 @@ interface TestProps extends EntityProps {
 }
 
 class TestEntity extends Entity<TestEntity, TestProps> {
+  constructor(props: TestProps) {
+    super(props);
+  }
+
   get name(): string {
     return this.props.name;
   }
@@ -23,7 +27,7 @@ class InMemoryRepo implements CrudRepository<TestEntity> {
   }
 
   async update(entity: TestEntity): Promise<Result<void>> {
-    const index = this.items.findIndex((item) => item.id.equals(entity.id));
+    const index = this.items.findIndex((item) => item.id === entity.id);
 
     if (index === -1) return Result.fail('NOT_FOUND');
 
@@ -32,7 +36,7 @@ class InMemoryRepo implements CrudRepository<TestEntity> {
   }
 
   async findById(id: string): Promise<Result<TestEntity>> {
-    const item = this.items.find((current) => current.id.value === id);
+    const item = this.items.find((current) => current.id === id);
 
     if (!item) return Result.fail('NOT_FOUND');
 
@@ -40,7 +44,7 @@ class InMemoryRepo implements CrudRepository<TestEntity> {
   }
 
   async delete(id: string): Promise<Result<void>> {
-    const index = this.items.findIndex((item) => item.id.value === id);
+    const index = this.items.findIndex((item) => item.id === id);
 
     if (index === -1) return Result.fail('NOT_FOUND');
 
@@ -55,7 +59,7 @@ describe('CrudRepository', () => {
     const entity = TestEntity.create({ name: 'test' });
 
     expect((await repo.create(entity)).isOk).toBe(true);
-    expect((await repo.findById(entity.id.value)).instance.name).toBe('test');
-    expect((await repo.delete(entity.id.value)).isOk).toBe(true);
+    expect((await repo.findById(entity.id)).instance.name).toBe('test');
+    expect((await repo.delete(entity.id)).isOk).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
 import { BrokerMessage } from './message-publisher';
 
 export const MESSAGE_CONSUMER = Symbol('MESSAGE_CONSUMER');

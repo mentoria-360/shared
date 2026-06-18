@@ -11,8 +11,8 @@ class BalanceChangedEvent extends AbstractDomainEvent<{
     super(props);
   }
 
-  static create(input: { aggregateId: string; previousBalance: number; currentBalance: number }) {
-    const result = BalanceChangedEvent.tryInstantiate(
+  static tryCreate(input: { aggregateId: string; previousBalance: number; currentBalance: number }) {
+    return super.tryCreateFromProps(
       {
         type: 'account.balance.changed',
         aggregateType: 'Account',
@@ -25,6 +25,10 @@ class BalanceChangedEvent extends AbstractDomainEvent<{
       },
       (props) => new BalanceChangedEvent(props),
     );
+  }
+
+  static create(input: { aggregateId: string; previousBalance: number; currentBalance: number }) {
+    const result = BalanceChangedEvent.tryCreate(input);
     result.validator.throwsIfFailed();
     return result.instance;
   }
@@ -38,8 +42,8 @@ class MonthChangedEvent extends AbstractDomainEvent<{
     super(props);
   }
 
-  static create(input: { aggregateId: string; previousMonth: string; currentMonth: string }) {
-    const result = MonthChangedEvent.tryInstantiate(
+  static tryCreate(input: { aggregateId: string; previousMonth: string; currentMonth: string }) {
+    return super.tryCreateFromProps(
       {
         type: 'transaction.month.changed',
         aggregateType: 'Transaction',
@@ -52,6 +56,10 @@ class MonthChangedEvent extends AbstractDomainEvent<{
       },
       (props) => new MonthChangedEvent(props),
     );
+  }
+
+  static create(input: { aggregateId: string; previousMonth: string; currentMonth: string }) {
+    const result = MonthChangedEvent.tryCreate(input);
     result.validator.throwsIfFailed();
     return result.instance;
   }

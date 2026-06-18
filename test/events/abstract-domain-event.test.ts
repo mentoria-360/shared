@@ -17,7 +17,7 @@ class TestDomainEvent extends AbstractDomainEvent<TestPayload, TestMetadata> {
     payload: TestPayload;
     metadata?: TestMetadata;
   }) {
-    return TestDomainEvent.tryInstantiate(
+    return super.tryCreateFromProps(
       {
         type: 'test.changed',
         aggregateType: 'TestAggregate',
@@ -42,7 +42,7 @@ class RawTestDomainEvent extends AbstractDomainEvent<TestPayload> {
   }
 
   static tryCreateWithProps(props: AbstractDomainEventProps<TestPayload, Record<string, unknown>>) {
-    return RawTestDomainEvent.tryInstantiate(props, (resolved) => new RawTestDomainEvent(resolved));
+    return super.tryCreateFromProps(props, (resolved) => new RawTestDomainEvent(resolved));
   }
 }
 

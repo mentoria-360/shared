@@ -1,6 +1,6 @@
 import { CreateRepository } from './create.repository';
 import { DeleteRepository } from './delete.repository';
-import { Entity } from '../base';
+import { Entity } from '../base/entity';
 import { FindByIdRepository } from './find-by-id.repository';
 import { UpdateRepository } from './update.repository';
 

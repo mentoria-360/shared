@@ -1,4 +1,4 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
 
 export const MESSAGE_PUBLISHER = Symbol('MESSAGE_PUBLISHER');
 

@@ -150,7 +150,7 @@ Todos os VOs e entidades seguem este contrato:
 | `tryCreate(...)` | `Result<T>` | Retorna `Result.fail` — nunca lança    |
 | `create(...)`    | `T`         | Lança via `validator.throwsIfFailed()` |
 
-Eventos de domínio concretos seguem o mesmo contrato via `tryInstantiate` / `instantiate` na classe base `AbstractDomainEvent` (ver seção [Eventos de domínio](#eventos-de-domínio)).
+Eventos de domínio concretos expõem `tryCreate`/`create` e delegam a validação comum via `super.tryCreateFromProps` (ver seção [Eventos de domínio](#eventos-de-domínio)).
 
 O segundo parâmetro aceita `ValueObjectConfig` ou `Metadata` (convertido via `resolveVoConfig`).
 
@@ -289,7 +289,7 @@ class SaldoAlteradoEvent extends AbstractDomainEvent<{ saldoAnterior: number; sa
   }
 
   static tryCreate(input: { aggregateId: string; saldoAnterior: number; saldoAtual: number }) {
-    return SaldoAlteradoEvent.tryInstantiate(
+    return super.tryCreateFromProps(
       {
         type: 'conta.saldo.alterado',
         aggregateType: 'Conta',
@@ -308,10 +308,17 @@ class SaldoAlteradoEvent extends AbstractDomainEvent<{ saldoAnterior: number; sa
 }
 ```
 
-| Método (base)      | Equivalente | Retorno     |
-| ------------------ | ----------- | ----------- |
-| `tryInstantiate`   | `tryCreate` | `Result<T>` |
-| `instantiate`      | `create`    | `T`         |
+Subclasses expõem `tryCreate`/`create` públicos (mesmo contrato dos VOs) e delegam a validação comum via `super.tryCreateFromProps(props, factory)`:
+
+| Método (subclasse) | Retorno     |
+| ------------------ | ----------- |
+| `tryCreate`        | `Result<T>` |
+| `create`           | `T`         |
+
+| Método (base, protected) | Uso interno das subclasses |
+| ------------------------ | -------------------------- |
+| `tryCreateFromProps`     | Valida props comuns + factory |
+| `createFromProps`        | Atalho que lança em falha  |
 
 - `id` — auto-gerado via `Id.create` quando omitido
 - `aggregateId` — obrigatório; validado via `Id.required`

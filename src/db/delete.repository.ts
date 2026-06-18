@@ -1,4 +1,4 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
 import { TransactionContext } from './transaction.manager';
 
 export interface DeleteRepository {
