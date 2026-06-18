@@ -1,33 +1,34 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { HashPassword } from './hash-password.vo';
 
-export class EncryptedPassword {
-  static readonly REGEX = /^\$2[ayb]\$[0-9]{2}\$[A-Za-z0-9\.\/]{53}$/;
+export class EncryptedPassword extends ValueObject<string, ValueObjectConfig> {
+  constructor(value: string, config?: ValueObjectConfig) {
+    const hash = value?.trim() ?? '';
 
-  constructor(
-    readonly value?: string,
-    readonly meta?: Metadata,
-  ) {
-    if (!value || !EncryptedPassword.isValid(value)) {
+    if (!HashPassword.isValid(hash)) {
       throw new ValidationError({
         code: 'encrypted-password.invalid',
-        meta: { ...meta?.props, value: undefined },
+        meta: { ...config?.meta, value: undefined },
       });
     }
+
+    super(hash, config);
   }
 
-  static create(value?: string, meta?: Metadata): EncryptedPassword {
-    const result = EncryptedPassword.tryCreate(value, meta);
+  public static isValid(hash: string): boolean {
+    return HashPassword.isValid(hash);
+  }
+
+  public static create(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): EncryptedPassword {
+    const result = EncryptedPassword.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  static tryCreate(value?: string, meta?: Metadata): Result<EncryptedPassword> {
-    return Result.try(() => new EncryptedPassword(value, meta));
-  }
-
-  static isValid(hash: string): boolean {
-    return EncryptedPassword.REGEX.test(hash);
+  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<EncryptedPassword> {
+    return Result.try(() => new EncryptedPassword(value ?? '', resolveVoConfig(metaOrConfig)));
   }
 }

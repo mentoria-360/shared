@@ -1,11 +1,12 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export type DateOnlyInput = string | Date;
 
 export class DateOnly extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_DATE_ONLY = 'INVALID_DATE_ONLY';
-
-  private constructor(value: string, config?: ValueObjectConfig) {
+  constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);
   }
 
@@ -13,25 +14,20 @@ export class DateOnly extends ValueObject<string, ValueObjectConfig> {
     return new Date(`${this.value}T00:00:00.000Z`);
   }
 
-  public static create(value: DateOnlyInput, config?: ValueObjectConfig): DateOnly {
-    const result = DateOnly.tryCreate(value, config);
+  public static create(value: DateOnlyInput, metaOrConfig?: Metadata | ValueObjectConfig): DateOnly {
+    const result = DateOnly.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: DateOnlyInput, config?: ValueObjectConfig): Result<DateOnly> {
-    try {
-      const normalizedValue = DateOnly.normalize(value);
-      return Result.ok(new DateOnly(normalizedValue, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? DateOnly.INVALID_DATE_ONLY);
-    }
+  public static tryCreate(value: DateOnlyInput, metaOrConfig?: Metadata | ValueObjectConfig): Result<DateOnly> {
+    return Result.try(() => new DateOnly(DateOnly.normalize(value), resolveVoConfig(metaOrConfig)));
   }
 
   private static normalize(value: DateOnlyInput): string {
     if (value instanceof Date) {
       if (Number.isNaN(value.getTime())) {
-        throw new Error(DateOnly.INVALID_DATE_ONLY);
+        throw new ValidationError({ code: 'date-only.invalid' });
       }
 
       return value.toISOString().slice(0, 10);
@@ -39,7 +35,7 @@ export class DateOnly extends ValueObject<string, ValueObjectConfig> {
 
     const rawValue = value?.trim();
     if (!rawValue) {
-      throw new Error(DateOnly.INVALID_DATE_ONLY);
+      throw new ValidationError({ code: 'date-only.invalid' });
     }
 
     const plainDateMatch = rawValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -55,7 +51,7 @@ export class DateOnly extends ValueObject<string, ValueObjectConfig> {
         normalizedDate.getUTCDate() === day;
 
       if (!isExactDate) {
-        throw new Error(DateOnly.INVALID_DATE_ONLY);
+        throw new ValidationError({ code: 'date-only.invalid' });
       }
 
       return normalizedDate.toISOString().slice(0, 10);
@@ -63,7 +59,7 @@ export class DateOnly extends ValueObject<string, ValueObjectConfig> {
 
     const parsedDate = new Date(rawValue);
     if (Number.isNaN(parsedDate.getTime())) {
-      throw new Error(DateOnly.INVALID_DATE_ONLY);
+      throw new ValidationError({ code: 'date-only.invalid' });
     }
 
     return parsedDate.toISOString().slice(0, 10);

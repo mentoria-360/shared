@@ -1,36 +1,27 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export class PositiveInteger extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_POSITIVE_INTEGER = 'INVALID_POSITIVE_INTEGER';
-
-  private constructor(value: number, config?: ValueObjectConfig) {
+  constructor(value: number, config?: ValueObjectConfig) {
+    PositiveInteger.ensureValid(value);
     super(value, config);
   }
 
-  public static create(value: number, config?: ValueObjectConfig): PositiveInteger {
-    const result = PositiveInteger.tryCreate(value, config);
+  public static create(value: number, metaOrConfig?: Metadata | ValueObjectConfig): PositiveInteger {
+    const result = PositiveInteger.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: number, config?: ValueObjectConfig): Result<PositiveInteger> {
-    try {
-      if (typeof value !== 'number') {
-        throw new Error(PositiveInteger.INVALID_POSITIVE_INTEGER);
-      }
-      if (!Number.isFinite(value)) {
-        throw new Error(PositiveInteger.INVALID_POSITIVE_INTEGER);
-      }
-      if (!Number.isInteger(value)) {
-        throw new Error(PositiveInteger.INVALID_POSITIVE_INTEGER);
-      }
-      if (value < 1) {
-        throw new Error(PositiveInteger.INVALID_POSITIVE_INTEGER);
-      }
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<PositiveInteger> {
+    return Result.try(() => new PositiveInteger(value, resolveVoConfig(metaOrConfig)));
+  }
 
-      return Result.ok(new PositiveInteger(value, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? PositiveInteger.INVALID_POSITIVE_INTEGER);
+  private static ensureValid(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 1) {
+      throw new ValidationError({ code: 'positive-integer.invalid' });
     }
   }
 }

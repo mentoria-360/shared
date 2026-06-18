@@ -1,35 +1,26 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export class HexColor extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_HEX_COLOR = 'INVALID_HEX_COLOR';
-
   constructor(value: string, config?: ValueObjectConfig) {
-    const normalized = value?.trim() ?? '';
+    const normalized = HexColor.normalize(value);
     if (!HexColor.isValid(normalized)) {
-      throw new Error('hexcolor.invalid');
+      throw new ValidationError({ code: 'hex-color.invalid' });
     }
 
     super(normalized, config);
   }
 
-  public static create(value: string, config?: ValueObjectConfig): HexColor {
-    const result = HexColor.tryCreate(value, config);
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): HexColor {
+    const result = HexColor.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<HexColor> {
-    try {
-      const normalized = value?.trim().toUpperCase() ?? '';
-      const withPrefix = normalized.startsWith('#') ? normalized : `#${normalized}`;
-      if (!HexColor.isValid(withPrefix)) {
-        throw new Error(HexColor.INVALID_HEX_COLOR);
-      }
-
-      return Result.ok(new HexColor(withPrefix, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? HexColor.INVALID_HEX_COLOR);
-    }
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<HexColor> {
+    return Result.try(() => new HexColor(value, resolveVoConfig(metaOrConfig)));
   }
 
   public static isValid(value: string): boolean {
@@ -39,5 +30,10 @@ export class HexColor extends ValueObject<string, ValueObjectConfig> {
 
     const regex = /^#(?:[0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/;
     return regex.test(value.trim().toUpperCase());
+  }
+
+  private static normalize(value: string): string {
+    const normalized = value?.trim().toUpperCase() ?? '';
+    return normalized.startsWith('#') ? normalized : `#${normalized}`;
   }
 }

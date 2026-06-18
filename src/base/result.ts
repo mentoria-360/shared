@@ -1,55 +1,20 @@
 import { ResultValidator } from './result-validator';
+import { ValidationError } from './validation-error';
 
-declare global {
-  interface String {
-    readonly code: string;
-    readonly value: string;
-    equals(other: string | { value: string }): boolean;
+function extractError(error: unknown): string | string[] {
+  if (error instanceof ValidationError) {
+    return error.messages.map((message) => message.code ?? 'validation-error');
   }
-}
 
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'code')) {
-  Object.defineProperty(String.prototype, 'code', {
-    get() {
-      const raw = this.toString();
-      const mapped: Record<string, string> = {
-        INVALID_ALIAS: 'alias.invalid',
-        INVALID_EMAIL: 'email.invalid',
-        INVALID_HEX_COLOR: 'hexcolor.invalid',
-        INVALID_ID: 'id.invalid',
-        INVALID_ORDER: 'order.negative',
-        WEAK_PASSWORD: 'strong-password.too-weak',
-        MUST_HAVE_FIRST_AND_LAST_NAME: 'person-name.surname-missing',
-        INVALID_URL: 'url.invalid',
-      };
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
 
-      return mapped[raw] ?? raw;
-    },
-    configurable: true,
-  });
-}
+  if (typeof error === 'string') {
+    return error;
+  }
 
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'value')) {
-  Object.defineProperty(String.prototype, 'value', {
-    get() {
-      return this.toString();
-    },
-    configurable: true,
-  });
-}
-
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'equals')) {
-  Object.defineProperty(String.prototype, 'equals', {
-    value(other: string | { value: string }) {
-      if (typeof other === 'string') {
-        return this.toString() === other;
-      }
-
-      return this.toString() === other?.value;
-    },
-    configurable: true,
-    writable: true,
-  });
+  return 'UNKNOWN_ERROR';
 }
 
 export class Result<T> {
@@ -63,8 +28,8 @@ export class Result<T> {
   }
 
   static fail<T>(e: string | string[]): Result<T> {
-    const erro = typeof e === 'string' ? [e] : e;
-    return new Result<T>(undefined, Array.isArray(erro) ? erro : [erro]);
+    const errors = typeof e === 'string' ? [e] : Array.isArray(e) ? e : [e];
+    return new Result<T>(undefined, errors);
   }
 
   static empty<T>(): Result<T> {
@@ -82,9 +47,8 @@ export class Result<T> {
       }
 
       return Result.ok(result);
-    } catch (e: any) {
-      const error = e instanceof Error ? e.message : e;
-      return Result.fail<T | void>(error);
+    } catch (error: unknown) {
+      return Result.fail<T | void>(extractError(error));
     }
   }
 
@@ -98,9 +62,8 @@ export class Result<T> {
       }
 
       return Result.ok<T>(result);
-    } catch (e: any) {
-      const error = e instanceof Error ? e.message : e;
-      return Result.fail<T>(error);
+    } catch (error: unknown) {
+      return Result.fail<T>(extractError(error));
     }
   }
 
@@ -109,8 +72,8 @@ export class Result<T> {
   }
 
   get errors(): string[] {
-    const semErros = !this._errors || this._errors.length === 0;
-    if (semErros && this._instance === undefined) {
+    const hasNoErrors = !this._errors || this._errors.length === 0;
+    if (hasNoErrors && this._instance === undefined) {
       return ['RESULT_UNDEFINED'];
     }
     return this._errors as string[];

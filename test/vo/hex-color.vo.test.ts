@@ -40,21 +40,21 @@ describe('HexColor', () => {
     const result = HexColor.tryCreate('#ZZZZZZ');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HEX_COLOR');
+    expect(result.errors).toContain('hex-color.invalid');
   });
 
   test('should fail with invalid length', () => {
     const result = HexColor.tryCreate('#12345');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HEX_COLOR');
+    expect(result.errors).toContain('hex-color.invalid');
   });
 
   test('should fail when value is undefined', () => {
     const result = HexColor.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HEX_COLOR');
+    expect(result.errors).toContain('hex-color.invalid');
   });
 
   test('should fallback normalized value to empty string when toUpperCase returns undefined', () => {
@@ -67,7 +67,7 @@ describe('HexColor', () => {
     const result = HexColor.tryCreate(valueWithUndefinedUpper);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HEX_COLOR');
+    expect(result.errors).toContain('hex-color.invalid');
   });
 
   test('should create with create when value is valid', () => {
@@ -89,7 +89,7 @@ describe('HexColor', () => {
       const result = HexColor.tryCreate('aabbcc');
 
       expect(result.isFailure).toBe(true);
-      expect(result.errors).toContain('INVALID_HEX_COLOR');
+      expect(result.errors).toContain('UNKNOWN_ERROR');
     } finally {
       trimSpy.mockRestore();
     }

@@ -1,42 +1,41 @@
-import { ValidationError } from '../base/validation-error';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { Result } from '../base';
+import { ValidationError } from '../base/validation-error';
 
-export class Cpf {
-  readonly formatted: string;
-
-  constructor(value: string, meta?: Metadata) {
+export class Cpf extends ValueObject<string, ValueObjectConfig> {
+  constructor(value: string, config?: ValueObjectConfig) {
     const v = Cpf.onlyNumbers(value);
 
     if (!Cpf.isValid(v)) {
       throw new ValidationError({
         code: 'cpf.invalid',
         meta: {
-          ...meta,
+          ...config?.meta,
           value: Cpf.format(v),
         },
       });
     }
 
-    this.formatted = Cpf.format(v);
+    super(Cpf.format(v), config);
   }
 
-  static create(value: string, meta?: Metadata): Cpf {
-    const result = Cpf.tryCreate(value, meta);
+  get formatted(): string {
+    return this.value;
+  }
+
+  get unformatted(): string {
+    return Cpf.onlyNumbers(this.value);
+  }
+
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Cpf {
+    const result = Cpf.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  static tryCreate(value: string, meta?: Metadata): Result<Cpf> {
-    return Result.try(() => new Cpf(value, meta));
-  }
-
-  get value() {
-    return this.formatted;
-  }
-
-  get unformatted() {
-    return Cpf.onlyNumbers(this.formatted);
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Cpf> {
+    return Result.try(() => new Cpf(value, resolveVoConfig(metaOrConfig)));
   }
 
   static format(v: string) {

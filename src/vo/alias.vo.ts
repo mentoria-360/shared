@@ -1,19 +1,15 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Alias extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_ALIAS = 'INVALID_ALIAS';
-
   constructor(value: string, config?: ValueObjectConfig) {
-    if (!Alias.isValid(value)) {
-      throw new ValidationError({ code: 'alias.invalid' });
-    }
-
-    super(value, config);
+    super(Alias.normalize(value), config);
   }
 
-  public static create(value: string, config?: ValueObjectConfig): Alias {
-    const result = Alias.tryCreate(value, config);
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Alias {
+    const result = Alias.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
@@ -43,45 +39,29 @@ export class Alias extends ValueObject<string, ValueObjectConfig> {
   }
 
   public static isValid(value: string): boolean {
-    if (typeof value !== 'string') {
+    try {
+      Alias.normalize(value);
+      return true;
+    } catch {
       return false;
+    }
+  }
+
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Alias> {
+    return Result.try(() => new Alias(value, resolveVoConfig(metaOrConfig)));
+  }
+
+  private static normalize(value: string): string {
+    if (typeof value !== 'string') {
+      throw new ValidationError({ code: 'alias.invalid' });
     }
 
     const normalized = value.toLowerCase();
-    if (value !== normalized) {
-      return false;
-    }
-    if (normalized !== normalized.trim()) {
-      return false;
-    }
-    if (/\s/.test(normalized)) {
-      return false;
+
+    if (normalized !== normalized.trim() || /\s/.test(normalized) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
+      throw new ValidationError({ code: 'alias.invalid' });
     }
 
-    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized);
-  }
-
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Alias> {
-    try {
-      if (typeof value !== 'string') {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-
-      const normalized = value.toLowerCase();
-
-      if (normalized !== normalized.trim()) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-      if (/\s/.test(normalized)) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-
-      return Result.ok(new Alias(normalized, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? Alias.INVALID_ALIAS);
-    }
+    return normalized;
   }
 }

@@ -1,11 +1,13 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export class Email extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_EMAIL = 'INVALID_EMAIL';
   constructor(value: string, config?: ValueObjectConfig) {
     const email = value?.trim().toLowerCase();
     if (!Email.isValid(email)) {
-      throw new Error('email.invalid');
+      throw new ValidationError({ code: 'email.invalid' });
     }
 
     super(email, config);
@@ -23,22 +25,14 @@ export class Email extends ValueObject<string, ValueObjectConfig> {
     return this.value.split('@')?.[1] ?? '';
   }
 
-  public static create(value: string, config?: ValueObjectConfig): Email {
-    const result = Email.tryCreate(value, config);
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Email {
+    const result = Email.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Email> {
-    try {
-      const email = value.trim().toLowerCase();
-      if (!Email.isValid(email)) {
-        throw new Error(Email.INVALID_EMAIL);
-      }
-      return Result.ok(new Email(email, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Email> {
+    return Result.try(() => new Email(value, resolveVoConfig(metaOrConfig)));
   }
 
   public static isValid(value: string): boolean {

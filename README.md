@@ -17,9 +17,19 @@ Result.fail('ERR_CODE'); // falha com um erro
 Result.fail(['E1', 'E2']); // falha com múltiplos erros
 
 // Captura automática de exceções
-Result.try(() => new MeuVO(value)); // síncrono
+Result.try(() => new MeuVO(value)); // síncrono — converte ValidationError em Result.fail
 await Result.tryAsync(() => repositorio.findById(id)); // assíncrono
+```
 
+Quando `Result.try` ou `Result.tryAsync` capturam uma `ValidationError`, o código é extraído via `error.codes` e retornado em `result.errors`. Erros desconhecidos retornam `'UNKNOWN_ERROR'`.
+
+```typescript
+const result = Email.tryCreate('invalid');
+// result.isFailure === true
+// result.errors === ['email.invalid']
+```
+
+```typescript
 // Combina múltiplos Results — agrega todos os erros se algum falhar
 Result.combine([r1, r2, r3] as const);
 await Result.combineAsync([promise1, promise2]);
@@ -29,22 +39,17 @@ await Result.combineAsync([promise1, promise2]);
 
 ```typescript
 result.validator
-  .throwsIfFailed() // lança se result.isFailure
+  .throwsIfFailed()    // lança se result.isFailure
   .throwsIfNull('ERR') // lança se instance == null
-  .throwsIfTrue('ERR').result; // lança se instance === true // devolve o Result original
+  .throwsIfNotNull('ERR')
+  .throwsIfTrue('ERR') // lança se instance === true
+  .throwsIfFalse('ERR')
+  .throwsIfEmpty('ERR')
+  .throwsIfNotEmpty('ERR')
+  .result;             // devolve o Result original
 ```
 
 Todos os métodos aceitam um segundo parâmetro `exceptionFactory` para substituir o `ResultError` padrão por qualquer tipo de exceção.
-
-### Extensões em `String.prototype`
-
-O módulo `Result` adiciona três propriedades ao tipo primitivo `string`:
-
-| Extensão         | Comportamento                                                                           |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| `.code`          | Mapeia constantes de erro para códigos semânticos (`INVALID_EMAIL` → `'email.invalid'`) |
-| `.value`         | Retorna `this.toString()` — compatibilidade com a interface de VOs                      |
-| `.equals(other)` | Compara com string ou com `{ value: string }`                                           |
 
 ---
 
@@ -65,11 +70,15 @@ const { props, diff } = entity.cloneProps({ name: 'novo' });
 const result = entity.clone({ status: 'active' });
 ```
 
-`clone` chama `tryCreate` da subclasse se disponível, respeitando as invariantes da entidade.
+`clone` chama `tryCreate` da subclasse se disponível, respeitando as invariantes da entidade. O ID é resolvido via `Id.tryCreate` no construtor — UUID inválido lança exceção.
+
+Entidades devem implementar `static tryCreate` e `static create` seguindo o mesmo contrato dos VOs quando precisarem de validação na criação.
 
 ### `ValueObject<T, Config>`
 
-Objetos imutáveis identificados pelo valor, não por referência. `equals` compara `value`; `config` carrega metadados de contexto.
+Objetos imutáveis identificados pelo valor, não por referência. `equals` compara `value`; `config` carrega metadados de contexto via `ValueObjectConfig.meta` (`MetadataProps`).
+
+Todos os VOs da biblioteca estendem `ValueObject`. O segundo parâmetro de `create`/`tryCreate` aceita `ValueObjectConfig` ou uma instância de `Metadata` (convertida automaticamente via `resolveVoConfig`).
 
 ### `UseCase<IN, OUT>`
 
@@ -91,19 +100,21 @@ Contexto imutável e fluente para enriquecer erros de validação.
 
 ```typescript
 const meta = new Metadata({ module: 'auth', object: 'user' });
-const emailMeta = meta.to('email', 'valor-invalido');
-// { module: 'auth', object: 'user', attribute: 'email', value: 'valor-invalido' }
+const emailMeta = meta.to('email', 'invalid-value');
+// { module: 'auth', object: 'user', attribute: 'email', value: 'invalid-value' }
 ```
 
 Campos: `module`, `object`, `attribute`, `value`, `id`. Métodos: `withModule/Object/Attribute/Value/Id`, `to(attribute, value?)`.
 
 ### `ValidationError`
 
-Exceção que carrega `Message[]` (código + metadados) e status HTTP. Usada pelos VOs que precisam de contexto rico.
+Exceção usada por **todos** os VOs da biblioteca. Carrega `messages: Message[]` (código + metadados opcionais) e status HTTP (padrão `400`).
 
 ```typescript
 throw new ValidationError({ code: 'cpf.invalid', meta: meta.props }, 422);
 ```
+
+No construtor do VO, a validação lança `ValidationError`. Em `tryCreate`, o mesmo erro é capturado por `Result.try` e vira `Result.fail('cpf.invalid')` — o código é sempre o mesmo, independente do caminho.
 
 ### `ResultError`
 
@@ -119,6 +130,53 @@ Todos os VOs e entidades seguem este contrato:
 | ---------------- | ----------- | -------------------------------------- |
 | `tryCreate(...)` | `Result<T>` | Retorna `Result.fail` — nunca lança    |
 | `create(...)`    | `T`         | Lança via `validator.throwsIfFailed()` |
+
+O segundo parâmetro aceita `ValueObjectConfig` ou `Metadata` (convertido via `resolveVoConfig`).
+
+```typescript
+export class MeuVO extends ValueObject<string, ValueObjectConfig> {
+  constructor(value: string, config?: ValueObjectConfig) {
+    if (!MeuVO.isValid(value)) {
+      throw new ValidationError({ code: 'meu-vo.invalid' });
+    }
+    super(value, config);
+  }
+
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): MeuVO {
+    return MeuVO.tryCreate(value, metaOrConfig).validator.throwsIfFailed().instance;
+  }
+
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<MeuVO> {
+    return Result.try(() => new MeuVO(value, resolveVoConfig(metaOrConfig)));
+  }
+}
+```
+
+### Códigos de erro dos VOs
+
+Formato: `entidade.motivo` (ex.: `email.invalid`). Disponíveis em `result.errors` após `tryCreate`.
+
+| VO | Códigos |
+| --- | --- |
+| `Alias` | `alias.invalid` |
+| `Cpf` | `cpf.invalid` |
+| `DateOnly` | `date-only.invalid` |
+| `DayOfMonth` | `day-of-month.invalid`, `day-of-month.out-of-range` |
+| `Description` | `description.too-short`, `description.too-long` |
+| `Duration` | `duration.negative` |
+| `Email` | `email.invalid` |
+| `EncryptedPassword` | `encrypted-password.invalid` |
+| `HashPassword` | `hash-password.invalid` |
+| `HexColor` | `hex-color.invalid` |
+| `Id` | `id.invalid` |
+| `NonNegative` | `non-negative.invalid` |
+| `Password` | `password.empty` |
+| `PersonName` | `person-name.too-short`, `person-name.too-long`, `person-name.surname-missing` |
+| `PositiveInteger` | `positive-integer.invalid` |
+| `ShortDescription` | `short-description.too-short`, `short-description.too-long` |
+| `StrongPassword` | `strong-password.too-weak` |
+| `Text` | `text.too-short`, `text.too-long` |
+| `Url` | `url.invalid` |
 
 ---
 
@@ -142,8 +200,8 @@ Todos os VOs e entidades seguem este contrato:
 | ------------------- | -------------------------------------------------------------------------------- |
 | `Password`          | Senha plana não-vazia (sem regras de força)                                      |
 | `StrongPassword`    | Mín. 8 chars, maiúscula, minúscula, número, caractere especial                   |
-| `HashPassword`      | Hash bcrypt validado por regex (`$2[aby]$...`)                                   |
-| `EncryptedPassword` | Mesmo formato que `HashPassword`; nome semântico para contextos de armazenamento |
+| `HashPassword`      | Hash bcrypt validado por regex (`$2[aby]$...`); expõe `isValid()`              |
+| `EncryptedPassword` | Mesmo formato que `HashPassword` (usa `HashPassword.isValid`); nome semântico para armazenamento |
 
 ### Números e datas
 
@@ -208,6 +266,19 @@ interface PaginatedResultDTO<T> {
   meta: PaginationMetaDTO;
 }
 ```
+
+---
+
+## API pública
+
+Exportado via `@arquitetura/shared`:
+
+| Módulo  | Conteúdo principal                                              |
+| ------- | --------------------------------------------------------------- |
+| `base`  | `Result`, `Entity`, `ValueObject`, `UseCase`, `Metadata`, `Message`, erros |
+| `db`    | Contratos de repositório, `TransactionManager`                  |
+| `query` | DTOs de paginação                                               |
+| `vo`    | Value Objects listados acima                                    |
 
 ---
 

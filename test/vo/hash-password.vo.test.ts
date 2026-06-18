@@ -20,7 +20,7 @@ describe('HashPassword', () => {
     const result = HashPassword.tryCreate('Aa123456!');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HASH_PASSWORD');
+    expect(result.errors).toContain('hash-password.invalid');
   });
 
   test('should normalize value with trim before validating hash', () => {
@@ -35,6 +35,6 @@ describe('HashPassword', () => {
     const result = HashPassword.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_HASH_PASSWORD');
+    expect(result.errors).toContain('hash-password.invalid');
   });
 });

@@ -1,42 +1,63 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export interface TextConfig extends ValueObjectConfig {
   minLength?: number;
   maxLength?: number;
 }
 
-export class Text extends ValueObject<string, TextConfig> {
-  protected static readonly TOO_SHORT: string = 'TEXT_TOO_SHORT';
-  protected static readonly TOO_LONG: string = 'TEXT_TOO_LONG';
-  protected static readonly DEFAULT_MIN_LENGTH: number = 1;
-  protected static readonly DEFAULT_MAX_LENGTH = Number.MAX_SAFE_INTEGER;
+export interface TextValidationRules {
+  minLength: number;
+  maxLength: number;
+  tooShortCode: string;
+  tooLongCode: string;
+}
 
-  protected constructor(value: string, config?: TextConfig) {
-    super(value, config);
+export class Text extends ValueObject<string, TextConfig> {
+  protected static readonly rules: TextValidationRules = {
+    minLength: 1,
+    maxLength: Number.MAX_SAFE_INTEGER,
+    tooShortCode: 'text.too-short',
+    tooLongCode: 'text.too-long',
+  };
+
+  constructor(value: string, config?: TextConfig, options?: { prevalidated?: boolean }) {
+    const trimmed = options?.prevalidated
+      ? (value?.trim() ?? '')
+      : Text.validateAndTrim(value, config, Text.rules);
+
+    super(trimmed, config);
   }
 
-  public static create(value: string, config?: TextConfig): Text {
-    const result = Text.tryCreate(value, config);
+  protected static validateAndTrim(
+    value: string,
+    config: TextConfig | undefined,
+    rules: TextValidationRules,
+  ): string {
+    const trimmed = value?.trim() ?? '';
+    const min = config?.minLength ?? rules.minLength;
+    const max = config?.maxLength ?? rules.maxLength;
+
+    if (trimmed.length < min) {
+      throw new ValidationError({ code: rules.tooShortCode });
+    }
+
+    if (max && trimmed.length > max) {
+      throw new ValidationError({ code: rules.tooLongCode });
+    }
+
+    return trimmed;
+  }
+
+  public static create(value: string, metaOrConfig?: Metadata | TextConfig): Text {
+    const result = Text.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(text: string, config?: TextConfig): Result<Text> {
-    try {
-      const value = text?.trim() ?? '';
-      const min = config?.minLength ?? this.DEFAULT_MIN_LENGTH;
-      const max = config?.maxLength ?? this.DEFAULT_MAX_LENGTH;
-
-      if (value.length < min) {
-        throw new Error(this.TOO_SHORT);
-      }
-      if (max && value.length > max) {
-        throw new Error(this.TOO_LONG);
-      }
-
-      return Result.ok(new this(value, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
+  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<Text> {
+    return Result.try(() => new Text(value, resolveVoConfig(metaOrConfig) as TextConfig));
   }
 }

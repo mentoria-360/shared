@@ -1,12 +1,11 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 interface PersonNameConfig extends ValueObjectConfig {}
 
 export class PersonName extends ValueObject<string, PersonNameConfig> {
-  private static readonly TOO_SHORT = 'NAME_TOO_SHORT';
-  private static readonly TOO_LONG = 'NAME_TOO_LONG';
-  private static readonly MUST_HAVE_FIRST_AND_LAST_NAME = 'MUST_HAVE_FIRST_AND_LAST_NAME';
-
   constructor(value?: string, config?: PersonNameConfig) {
     super(PersonName.ensureValid(value ?? ''), config);
   }
@@ -28,18 +27,14 @@ export class PersonName extends ValueObject<string, PersonNameConfig> {
     return `${this.firstName.charAt(0)}${this.lastName.charAt(0)}`;
   }
 
-  public static create(value: string, config?: PersonNameConfig): PersonName {
-    const result = PersonName.tryCreate(value, config);
+  public static create(value: string, metaOrConfig?: Metadata | PersonNameConfig): PersonName {
+    const result = PersonName.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string, config?: PersonNameConfig): Result<PersonName> {
-    try {
-      return Result.ok(new PersonName(PersonName.ensureValid(value), config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
+  public static tryCreate(value: string, metaOrConfig?: Metadata | PersonNameConfig): Result<PersonName> {
+    return Result.try(() => new PersonName(value, resolveVoConfig(metaOrConfig) as PersonNameConfig));
   }
 
   private static ensureValid(value: string): string {
@@ -48,25 +43,27 @@ export class PersonName extends ValueObject<string, PersonNameConfig> {
     const max = 50;
 
     if (trimmedValue.length < min) {
-      throw new Error(PersonName.TOO_SHORT);
+      throw new ValidationError({ code: 'person-name.too-short' });
     }
+
     if (trimmedValue.length > max) {
-      throw new Error(PersonName.TOO_LONG);
+      throw new ValidationError({ code: 'person-name.too-long' });
     }
 
     const words = trimmedValue.split(/\s+/).filter((w) => w.length > 0);
     if (words.length < 2) {
-      throw new Error(PersonName.MUST_HAVE_FIRST_AND_LAST_NAME);
+      throw new ValidationError({ code: 'person-name.surname-missing' });
     }
+
     const first = words[0]!;
     const last = words[words.length - 1]!;
     if (first.length < 2 || last.length < 2) {
-      throw new Error(PersonName.TOO_SHORT);
+      throw new ValidationError({ code: 'person-name.too-short' });
     }
 
     const validNameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ'`´^~\- ]+$/;
     if (!validNameRegex.test(trimmedValue)) {
-      throw new Error(PersonName.MUST_HAVE_FIRST_AND_LAST_NAME);
+      throw new ValidationError({ code: 'person-name.surname-missing' });
     }
 
     return trimmedValue;

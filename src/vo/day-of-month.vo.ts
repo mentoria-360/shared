@@ -1,40 +1,31 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
+import { ValidationError } from '../base/validation-error';
 
 export class DayOfMonth extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_DAY_OF_MONTH = 'INVALID_DAY_OF_MONTH';
-  private static readonly DAY_OF_MONTH_OUT_OF_RANGE = 'DAY_OF_MONTH_OUT_OF_RANGE';
-
-  private constructor(value: number, config?: ValueObjectConfig) {
+  constructor(value: number, config?: ValueObjectConfig) {
+    DayOfMonth.ensureValid(value);
     super(value, config);
   }
 
-  public static create(value: number, config?: ValueObjectConfig): DayOfMonth {
-    const result = DayOfMonth.tryCreate(value, config);
+  public static create(value: number, metaOrConfig?: Metadata | ValueObjectConfig): DayOfMonth {
+    const result = DayOfMonth.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: number, config?: ValueObjectConfig): Result<DayOfMonth> {
-    try {
-      if (typeof value !== 'number') {
-        throw new Error(DayOfMonth.INVALID_DAY_OF_MONTH);
-      }
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<DayOfMonth> {
+    return Result.try(() => new DayOfMonth(value, resolveVoConfig(metaOrConfig)));
+  }
 
-      if (!Number.isFinite(value)) {
-        throw new Error(DayOfMonth.INVALID_DAY_OF_MONTH);
-      }
+  private static ensureValid(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value)) {
+      throw new ValidationError({ code: 'day-of-month.invalid' });
+    }
 
-      if (!Number.isInteger(value)) {
-        throw new Error(DayOfMonth.INVALID_DAY_OF_MONTH);
-      }
-
-      if (value < 1 || value > 31) {
-        throw new Error(DayOfMonth.DAY_OF_MONTH_OUT_OF_RANGE);
-      }
-
-      return Result.ok(new DayOfMonth(value, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? DayOfMonth.INVALID_DAY_OF_MONTH);
+    if (value < 1 || value > 31) {
+      throw new ValidationError({ code: 'day-of-month.out-of-range' });
     }
   }
 }

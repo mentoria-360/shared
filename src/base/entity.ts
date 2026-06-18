@@ -24,7 +24,9 @@ export abstract class Entity<Type, Props extends EntityProps> {
   readonly id: string;
 
   protected constructor(public readonly props: Props) {
-    const id = Id.create(props.id!, { attribute: 'id' }).value;
+    const idResult = Id.tryCreate(props.id);
+    idResult.validator.throwsIfFailed();
+    const id = idResult.instance.value;
     this.id = id;
     this.props = {
       ...props,

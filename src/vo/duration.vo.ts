@@ -1,32 +1,32 @@
-import { ValidationError } from '../base/validation-error';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { Result } from '../base';
+import { ValidationError } from '../base/validation-error';
 
-export class Duration {
+export class Duration extends ValueObject<number, ValueObjectConfig> {
   static readonly ONE_MINUTE: number = 60;
   static readonly ONE_HOUR: number = 3600;
   static readonly ONE_DAY: number = 86400;
 
-  constructor(
-    readonly value: number,
-    meta?: Metadata,
-  ) {
-    if (this.value < 0) {
+  constructor(value: number, config?: ValueObjectConfig) {
+    if (value < 0) {
       throw new ValidationError({
         code: 'duration.negative',
-        meta: meta?.withValue(value).props,
+        meta: config?.meta ? { ...config.meta, value } : { value },
       });
     }
+
+    super(value, config);
   }
 
-  static create(value: number, meta?: Metadata): Duration {
-    const result = Duration.tryCreate(value, meta);
+  public static create(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Duration {
+    const result = Duration.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  static tryCreate(value: number, meta?: Metadata): Result<Duration> {
-    return Result.try(() => new Duration(value, meta));
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<Duration> {
+    return Result.try(() => new Duration(value, resolveVoConfig(metaOrConfig)));
   }
 
   static zero() {
@@ -92,7 +92,7 @@ export class Duration {
   }
 
   private _parts(n = 2): { h: string; m: string; s: string } {
-    let v = this.inSeconds;
+    const v = this.inSeconds;
     const h = v > 3600 ? Math.floor(v / 3600) : 0;
     const m = v - h * 3600 > 60 ? Math.floor((v - h * 3600) / 60) : 0;
     const s = v - h * 3600 - m * 60;

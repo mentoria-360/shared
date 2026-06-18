@@ -1,27 +1,27 @@
-import { Result } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
-export class Password {
-  constructor(
-    readonly value?: string,
-    readonly meta?: Metadata,
-  ) {
+export class Password extends ValueObject<string, ValueObjectConfig> {
+  constructor(value: string, config?: ValueObjectConfig) {
     if (!value?.trim()) {
       throw new ValidationError({
         code: 'password.empty',
-        meta: { ...meta?.props, value: undefined },
+        meta: { ...config?.meta, value: undefined },
       });
     }
+
+    super(value, config);
   }
 
-  static create(value?: string, meta?: Metadata): Password {
-    const result = Password.tryCreate(value, meta);
+  public static create(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Password {
+    const result = Password.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  static tryCreate(value?: string, meta?: Metadata): Result<Password> {
-    return Result.try(() => new Password(value, meta));
+  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Password> {
+    return Result.try(() => new Password(value ?? '', resolveVoConfig(metaOrConfig)));
   }
 }

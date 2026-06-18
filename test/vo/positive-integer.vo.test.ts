@@ -13,16 +13,16 @@ describe('PositiveInteger', () => {
     const negative = PositiveInteger.tryCreate(-1);
 
     expect(zero.isFailure).toBe(true);
-    expect(zero.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(zero.errors).toContain('positive-integer.invalid');
     expect(negative.isFailure).toBe(true);
-    expect(negative.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(negative.errors).toContain('positive-integer.invalid');
   });
 
   test('should fail when value is not integer', () => {
     const result = PositiveInteger.tryCreate(1.5);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(result.errors).toContain('positive-integer.invalid');
   });
 
   test('should fail when value is not finite number', () => {
@@ -30,16 +30,16 @@ describe('PositiveInteger', () => {
     const positiveInfinity = PositiveInteger.tryCreate(Number.POSITIVE_INFINITY);
 
     expect(nan.isFailure).toBe(true);
-    expect(nan.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(nan.errors).toContain('positive-integer.invalid');
     expect(positiveInfinity.isFailure).toBe(true);
-    expect(positiveInfinity.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(positiveInfinity.errors).toContain('positive-integer.invalid');
   });
 
   test('should fail when value is not a number', () => {
     const result = PositiveInteger.tryCreate('1' as unknown as number);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(result.errors).toContain('positive-integer.invalid');
   });
 
   test('should throw when create receives invalid value', () => {
@@ -60,7 +60,7 @@ describe('PositiveInteger', () => {
     const result = PositiveInteger.tryCreate(1);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('INVALID_POSITIVE_INTEGER');
+    expect(result.errors).toContain('UNKNOWN_ERROR');
     isIntegerSpy.mockRestore();
   });
 });

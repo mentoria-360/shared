@@ -1,9 +1,9 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from '../base/result';
+import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Url extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_URL = 'INVALID_URL';
-
   constructor(value?: string, config?: ValueObjectConfig) {
     const normalized = value?.trim();
     if (!normalized || !Url.isValid(normalized)) {
@@ -39,27 +39,13 @@ export class Url extends ValueObject<string, ValueObjectConfig> {
     }
   }
 
-  public static create(value: string, config?: ValueObjectConfig): Url {
-    const result = Url.tryCreate(value, config);
+  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Url {
+    const result = Url.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Url> {
-    try {
-      const url = value.trim();
-      if (!Url.isValid(url)) {
-        throw new Error(Url.INVALID_URL);
-      }
-      return Result.ok(new Url(url, config));
-    } catch {
-      return Result.fail(Url.INVALID_URL);
-    }
-  }
-}
-
-export class URL extends Url {
-  constructor(value?: string, config?: ValueObjectConfig) {
-    super(value, config);
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Url> {
+    return Result.try(() => new Url(value, resolveVoConfig(metaOrConfig)));
   }
 }

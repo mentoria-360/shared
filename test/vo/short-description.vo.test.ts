@@ -2,31 +2,31 @@ import { ShortDescription } from '../../src';
 
 describe('ShortDescription', () => {
   test('should create valid short description with tryCreate', () => {
-    const result = ShortDescription.tryCreate('Descricao curta valida.');
+    const result = ShortDescription.tryCreate('Valid short description.');
 
     expect(result.isOk).toBe(true);
-    expect(result.instance.value).toBe('Descricao curta valida.');
+    expect(result.instance.value).toBe('Valid short description.');
   });
 
   test('should trim short description before creating', () => {
-    const result = ShortDescription.tryCreate('   Esta e uma descricao curta valida.   ');
+    const result = ShortDescription.tryCreate('   This is a valid short description.   ');
 
     expect(result.isOk).toBe(true);
-    expect(result.instance.value).toBe('Esta e uma descricao curta valida.');
+    expect(result.instance.value).toBe('This is a valid short description.');
   });
 
   test('should fail when short description is shorter than minimum length', () => {
     const result = ShortDescription.tryCreate('a'.repeat(14));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('SHORT_DESCRIPTION_TOO_SHORT');
+    expect(result.errors).toContain('short-description.too-short');
   });
 
   test('should fail when short description is longer than maximum length', () => {
     const result = ShortDescription.tryCreate('a'.repeat(81));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('SHORT_DESCRIPTION_TOO_LONG');
+    expect(result.errors).toContain('short-description.too-long');
   });
 
   test('should ignore max validation when maxLength is 0', () => {
@@ -42,16 +42,16 @@ describe('ShortDescription', () => {
     const result = ShortDescription.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('SHORT_DESCRIPTION_TOO_SHORT');
+    expect(result.errors).toContain('short-description.too-short');
   });
 
   test('should create with create method', () => {
-    const shortDescription = ShortDescription.create('  Esta e uma descricao curta criada com sucesso.  ');
+    const shortDescription = ShortDescription.create('  This is a short description created successfully.  ');
 
-    expect(shortDescription.value).toBe('Esta e uma descricao curta criada com sucesso.');
+    expect(shortDescription.value).toBe('This is a short description created successfully.');
   });
 
   test('should throw when create receives invalid short description', () => {
-    expect(() => ShortDescription.create('muito curta')).toThrow();
+    expect(() => ShortDescription.create('too short')).toThrow();
   });
 });

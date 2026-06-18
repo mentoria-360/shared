@@ -1,4 +1,4 @@
-import { Result } from '../../src';
+import { Result, ValidationError } from '../../src';
 
 describe('Result', () => {
   test('should create ok result with instance', () => {
@@ -98,6 +98,15 @@ describe('Result', () => {
     expect(result.errors).toEqual(['SYNC_ERR_OBJECT']);
   });
 
+  test('should execute try with ValidationError containing multiple codes and preserve them separately', () => {
+    const result = Result.try(() => {
+      throw new ValidationError([{ code: 'E1' }, { code: 'E2' }]);
+    });
+
+    expect(result.isFailure).toBe(true);
+    expect(result.errors).toEqual(['E1', 'E2']);
+  });
+
   test('should execute try with Result return and avoid nested Result', () => {
     const result = Result.try(() => Result.ok('sync-done'));
 
@@ -142,6 +151,15 @@ describe('Result', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.errors).toEqual(['ASYNC_ERR_OBJECT']);
+  });
+
+  test('should execute tryAsync with ValidationError containing multiple codes and preserve them separately', async () => {
+    const result = await Result.tryAsync(async () => {
+      throw new ValidationError([{ code: 'E1' }, { code: 'E2' }]);
+    });
+
+    expect(result.isFailure).toBe(true);
+    expect(result.errors).toEqual(['E1', 'E2']);
   });
 
   test('should combine successful results', () => {
@@ -227,38 +245,6 @@ describe('Result', () => {
     expect(validatedResult).toBe(result);
     expect(validatedResult.isOk).toBe(true);
     expect(validatedResult.instance).toBe(true);
-  });
-
-  test('should skip String.prototype property definitions when already defined', () => {
-    jest.isolateModules(() => {
-      require('../../src/base/result');
-    });
-
-    expect('INVALID_ALIAS'.code).toBe('alias.invalid');
-    expect('hello'.value).toBe('hello');
-    expect('hello'.equals('hello')).toBe(true);
-  });
-
-  describe('String.prototype.equals', () => {
-    test('should return true when compared string matches', () => {
-      expect('hello'.equals('hello')).toBe(true);
-    });
-
-    test('should return false when compared string does not match', () => {
-      expect('hello'.equals('world')).toBe(false);
-    });
-
-    test('should return true when compared object value matches', () => {
-      expect('hello'.equals({ value: 'hello' })).toBe(true);
-    });
-
-    test('should return false when compared object value does not match', () => {
-      expect('hello'.equals({ value: 'world' })).toBe(false);
-    });
-
-    test('should return false when other is nullish', () => {
-      expect('hello'.equals(null as any)).toBe(false);
-    });
   });
 
   test('should convert to string for ok and fail', () => {
