@@ -1,6 +1,6 @@
 # @arquitetura/shared
 
-Biblioteca de infraestrutura compartilhada para projetos com arquitetura orientada ao domínio. Fornece os blocos de construção do DDD — `Result`, `Entity`, `ValueObject`, `UseCase` — além de contratos de repositório, sistema de erros estruturados e uma biblioteca de Value Objects prontos para uso.
+Biblioteca de infraestrutura compartilhada para projetos com arquitetura orientada ao domínio. Fornece os blocos de construção do DDD — `Result`, `Entity`, `AggregateRoot`, `ValueObject`, `UseCase` — além de eventos de domínio, messaging, contratos de repositório, sistema de erros estruturados e uma biblioteca de Value Objects prontos para uso.
 
 ---
 
@@ -74,6 +74,25 @@ const result = entity.clone({ status: 'active' });
 
 Entidades devem implementar `static tryCreate` e `static create` seguindo o mesmo contrato dos VOs quando precisarem de validação na criação.
 
+### `AggregateRoot<Type, Props, Event>`
+
+Estende `Entity` para agregados que emitem eventos de domínio. Acumula eventos internamente até serem consumidos pela camada de aplicação ou infraestrutura.
+
+```typescript
+class Pedido extends AggregateRoot<Pedido, PedidoProps, PedidoCriadoEvent> {
+  confirmar() {
+    this.addEvent(PedidoConfirmadoEvent.create({ aggregateId: this.id, ... }));
+  }
+}
+
+// Após a mutação
+if (pedido.hasEvents()) {
+  const eventos = pedido.pullEvents(); // retorna e limpa a fila
+}
+```
+
+Métodos: `addEvent` (protected), `hasEvents`, `peekEvents`, `pullEvents`, `clearEvents`. `cloneWith` propaga eventos de clone via hook `onClone`.
+
 ### `ValueObject<T, Config>`
 
 Objetos imutáveis identificados pelo valor, não por referência. `equals` compara `value`; `config` carrega metadados de contexto via `ValueObjectConfig.meta` (`MetadataProps`).
@@ -131,6 +150,8 @@ Todos os VOs e entidades seguem este contrato:
 | `tryCreate(...)` | `Result<T>` | Retorna `Result.fail` — nunca lança    |
 | `create(...)`    | `T`         | Lança via `validator.throwsIfFailed()` |
 
+Eventos de domínio concretos seguem o mesmo contrato via `tryInstantiate` / `instantiate` na classe base `AbstractDomainEvent` (ver seção [Eventos de domínio](#eventos-de-domínio)).
+
 O segundo parâmetro aceita `ValueObjectConfig` ou `Metadata` (convertido via `resolveVoConfig`).
 
 ```typescript
@@ -177,6 +198,7 @@ Formato: `entidade.motivo` (ex.: `email.invalid`). Disponíveis em `result.error
 | `StrongPassword` | `strong-password.too-weak` |
 | `Text` | `text.too-short`, `text.too-long` |
 | `Url` | `url.invalid` |
+| `AbstractDomainEvent` | `domain-event.type.invalid`, `domain-event.aggregate-type.invalid`, `id.invalid` |
 
 ---
 
@@ -248,6 +270,108 @@ interface CrudRepository<T extends Entity<any, any>>
 
 ---
 
+## Eventos de domínio
+
+### `DomainEvent<Payload, Metadata>`
+
+Interface base de um evento de domínio. Campos: `id`, `type`, `aggregateType`, `aggregateId`, `payload`, `metadata`, `occurredAt`.
+
+### `AbstractDomainEvent<Payload, Metadata>`
+
+Classe abstrata para eventos concretos. Valida campos comuns via `ValidationError` + `Result.try`, seguindo o padrão `create`/`tryCreate` do pacote.
+
+Subclasses implementam construtor `private`, delegando a validação à base:
+
+```typescript
+class SaldoAlteradoEvent extends AbstractDomainEvent<{ saldoAnterior: number; saldoAtual: number }> {
+  private constructor(props: ResolvedDomainEventProps<{ saldoAnterior: number; saldoAtual: number }>) {
+    super(props);
+  }
+
+  static tryCreate(input: { aggregateId: string; saldoAnterior: number; saldoAtual: number }) {
+    return SaldoAlteradoEvent.tryInstantiate(
+      {
+        type: 'conta.saldo.alterado',
+        aggregateType: 'Conta',
+        aggregateId: input.aggregateId,
+        payload: { saldoAnterior: input.saldoAnterior, saldoAtual: input.saldoAtual },
+      },
+      (props) => new SaldoAlteradoEvent(props),
+    );
+  }
+
+  static create(input: { aggregateId: string; saldoAnterior: number; saldoAtual: number }) {
+    const result = SaldoAlteradoEvent.tryCreate(input);
+    result.validator.throwsIfFailed();
+    return result.instance;
+  }
+}
+```
+
+| Método (base)      | Equivalente | Retorno     |
+| ------------------ | ----------- | ----------- |
+| `tryInstantiate`   | `tryCreate` | `Result<T>` |
+| `instantiate`      | `create`    | `T`         |
+
+- `id` — auto-gerado via `Id.create` quando omitido
+- `aggregateId` — obrigatório; validado via `Id.required`
+- `type` / `aggregateType` — strings não-vazias (trim)
+
+### `OutboxEvent` e `DomainEventStatus`
+
+`OutboxEvent` estende `DomainEvent` com `status` (`PENDING` | `PUBLISHED`) e `publishedAt`. Usado no padrão Outbox para publicação confiável.
+
+### `DomainEventRepository`
+
+```typescript
+interface DomainEventRepository {
+  append(events: DomainEvent[], tx?: TransactionContext): Promise<Result<void>>;
+}
+```
+
+Persiste eventos no outbox dentro da mesma transação da mutação do agregado.
+
+---
+
+## Messaging
+
+Contratos de publicação e consumo de mensagens, desacoplados de broker específico (RabbitMQ, SQS, etc.).
+
+### `MessagePublisher`
+
+```typescript
+interface MessagePublisher {
+  publish(message: PublishMessageIn): Promise<Result<void>>;
+}
+
+interface BrokerMessage {
+  messageId: string;
+  type: string;
+  payload: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  occurredAt: Date;
+}
+```
+
+Token de injeção: `MESSAGE_PUBLISHER`.
+
+### `MessageConsumer`
+
+```typescript
+interface MessageConsumer {
+  subscribe(input: ConsumeMessageIn): Promise<Result<void>>;
+}
+
+interface EventConsumer {
+  readonly eventType: string;
+  handle(message: BrokerMessage): Promise<Result<void>>;
+}
+```
+
+Token de injeção: `MESSAGE_CONSUMER`.
+
+---
+
 ## DTOs de paginação
 
 ```typescript
@@ -273,12 +397,14 @@ interface PaginatedResultDTO<T> {
 
 Exportado via `@arquitetura/shared`:
 
-| Módulo  | Conteúdo principal                                              |
-| ------- | --------------------------------------------------------------- |
-| `base`  | `Result`, `Entity`, `ValueObject`, `UseCase`, `Metadata`, `Message`, erros |
-| `db`    | Contratos de repositório, `TransactionManager`                  |
-| `query` | DTOs de paginação                                               |
-| `vo`    | Value Objects listados acima                                    |
+| Módulo       | Conteúdo principal                                                         |
+| ------------ | -------------------------------------------------------------------------- |
+| `base`       | `Result`, `Entity`, `AggregateRoot`, `ValueObject`, `UseCase`, erros       |
+| `db`         | Contratos de repositório, `TransactionManager`                             |
+| `events`     | `DomainEvent`, `AbstractDomainEvent`, `OutboxEvent`, `DomainEventRepository` |
+| `messaging`  | `MessagePublisher`, `MessageConsumer`, `EventConsumer`, `BrokerMessage`    |
+| `query`      | DTOs de paginação                                                          |
+| `vo`         | Value Objects listados acima                                               |
 
 ---
 
