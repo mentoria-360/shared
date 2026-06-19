@@ -1,6 +1,6 @@
-import type { MetadataProps } from './metadata';
+import type { MetadataProps } from "./metadata"
 
 export default interface Message {
-  code?: string;
-  meta?: MetadataProps;
+	code?: string
+	meta?: MetadataProps
 }

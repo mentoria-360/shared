@@ -1,16 +1,20 @@
-export interface ValueObjectConfig {}
-
-export abstract class ValueObject<T, Config extends ValueObjectConfig> {
-  constructor(
-    readonly value: T,
-    readonly config?: Config,
-  ) {}
-
-  equals(vo: ValueObject<T, Config>): boolean {
-    return this.value === vo.value;
-  }
-
-  notEquals(vo: ValueObject<T, Config>): boolean {
-    return !this.equals(vo);
-  }
+export interface ValueObjectConfig {
+	attribute?: string
 }
+
+export default abstract class ValueObject<TValue, TConfig extends ValueObjectConfig = ValueObjectConfig> {
+	constructor(
+		readonly value: TValue,
+		readonly config?: TConfig,
+	) {}
+
+	equals(vo: ValueObject<TValue, TConfig>): boolean {
+		return this.value === vo.value
+	}
+
+	notEquals(vo: ValueObject<TValue, TConfig>): boolean {
+		return !this.equals(vo)
+	}
+}
+
+export { ValueObject }

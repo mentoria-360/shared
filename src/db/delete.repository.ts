@@ -1,6 +1,5 @@
-import { Result } from '../base';
-import { TransactionContext } from './transaction.manager';
+import Result from "../base/result"
 
 export interface DeleteRepository {
-  delete(id: string, tx?: TransactionContext): Promise<Result<void>>;
+	delete(id: string): Promise<Result<void>>
 }

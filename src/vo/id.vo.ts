@@ -1,48 +1,46 @@
-import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig } from '../base/vo';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid, validate } from "uuid"
+import Metadata from "../base/metadata"
+import ValidationError from "../base/validation.error"
+import { Result } from "../base"
 
-export class Id extends ValueObject<string, ValueObjectConfig> {
-  protected static readonly INVALID_ID: string = 'INVALID_ID';
-  constructor(value: string, config?: ValueObjectConfig) {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const idValue = value?.trim().toLowerCase();
-    if (!uuidRegex.test(idValue)) {
-      throw new Error('id.invalid');
-    }
-    super(idValue, config);
-  }
+export default class Id {
+	readonly value: string
 
-  public static create(this: typeof Id, value?: string | undefined, config?: ValueObjectConfig): Id {
-    const result = this.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
+	constructor(
+		value?: string,
+		readonly meta?: Metadata,
+	) {
+		this.value = value ?? uuid()
 
-  public static tryCreate(this: typeof Id, value?: string | undefined, config?: ValueObjectConfig): Result<Id> {
-    try {
-      const hasValue = value !== undefined && value !== null && value !== '';
-      const idValue = hasValue ? value!.trim().toLowerCase() : uuidv4();
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(idValue)) {
-        throw new Error(this.INVALID_ID);
-      }
-      return Result.ok(new this(idValue, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
-  }
+		if (!Id.isValid(this.value)) {
+			throw new ValidationError({
+				code: "id.invalid",
+				meta: { ...meta?.props, value: this.value },
+			})
+		}
+	}
 
-  public static createUUID(): string {
-    return uuidv4();
-  }
+	static create(value?: string, meta?: Metadata) {
+		return new Id(value, meta)
+	}
 
-  public static required(this: typeof Id, value: string, config?: ValueObjectConfig): Result<Id> {
-    if (!value) {
-      return Result.fail(this.INVALID_ID);
-    }
-    const result = this.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result;
-  }
+	static tryCreate(value?: string, meta?: Metadata): Result<Id> {
+		return Result.try(() => new Id(value, meta))
+	}
+
+	static createUUID() {
+		return new Id().value
+	}
+
+	equals(id: Id) {
+		return this.value === id.value
+	}
+
+	notEquals(id: Id) {
+		return this.value !== id.value
+	}
+
+	static isValid(id: string): boolean {
+		return validate(id)
+	}
 }

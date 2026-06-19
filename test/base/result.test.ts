@@ -1,239 +1,147 @@
-import { Result } from '../../src';
-
-describe('Result', () => {
-  test('should create ok result with instance', () => {
-    const result = Result.ok('value');
-
-    expect(result.isOk).toBe(true);
-    expect(result.isFailure).toBe(false);
-    expect(result.instance).toBe('value');
-  });
-
-  test('should create ok result with null when instance is undefined', () => {
-    const result = Result.ok();
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBeNull();
-    expect(result.errors).toBeUndefined();
-  });
-
-  test('should create failed result from string', () => {
-    const result = Result.fail('ERR');
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['ERR']);
-  });
-
-  test('should create failed result from string array', () => {
-    const result = Result.fail(['E1', 'E2']);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['E1', 'E2']);
-  });
-
-  test('should create empty result with null instance', () => {
-    const result = Result.empty<string>();
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBeNull();
-    expect(result.errors).toBeUndefined();
-  });
-
-  test('should use fallback error wrapper when fail receives non-array value', () => {
-    const result = Result.fail(123 as unknown as string);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual([123]);
-  });
-
-  test('should return RESULT_UNDEFINED when no instance and no explicit errors', () => {
-    const result = new Result<string>(undefined, []);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['RESULT_UNDEFINED']);
-  });
-
-  test('should throw errors when throwsIfFailed is called on failure', () => {
-    const result = Result.fail('ERR');
-
-    expect(() => result.validator.throwsIfFailed()).toThrow();
-  });
-
-  test('should not throw when throwsIfFailed is called on success', () => {
-    const result = Result.ok('ok');
-
-    expect(() => result.validator.throwsIfFailed()).not.toThrow();
-  });
-
-  test('should return failed result with withFail', () => {
-    const result = Result.fail('ERR');
-    const failed = result.withFail;
-
-    expect(failed.isFailure).toBe(true);
-    expect(failed.errors).toEqual(['ERR']);
-  });
-
-  test('should execute trySync with success', () => {
-    const result = Result.trySync(() => 'done');
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBe('done');
-  });
-
-  test('should execute trySync with failure', () => {
-    const result = Result.trySync(() => {
-      throw 'SYNC_ERR';
-    });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['SYNC_ERR']);
-  });
-
-  test('should execute trySync with Error failure and map to message', () => {
-    const result = Result.trySync(() => {
-      throw new Error('SYNC_ERR_OBJECT');
-    });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['SYNC_ERR_OBJECT']);
-  });
-
-  test('should execute trySync with Result return and avoid nested Result', () => {
-    const result = Result.trySync(() => Result.ok('sync-done'));
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBe('sync-done');
-  });
-
-  test('should execute try with success', async () => {
-    const result = await Result.try(async () => Result.ok('done'));
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBe('done');
-  });
-
-  test('should execute try with plain value and wrap in ok', async () => {
-    const result = await Result.try(async () => 'done');
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBe('done');
-  });
-
-  test('should execute try with void callback and return ok', async () => {
-    const result = await Result.try(async () => {});
-
-    expect(result.isOk).toBe(true);
-    expect(result.errors).toBeUndefined();
-  });
-
-  test('should execute try with failure', async () => {
-    const result = await Result.try(async () => {
-      throw 'ASYNC_ERR';
-    });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['ASYNC_ERR']);
-  });
-
-  test('should execute try with Error failure and map to message', async () => {
-    const result = await Result.try(async () => {
-      throw new Error('ASYNC_ERR_OBJECT');
-    });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['ASYNC_ERR_OBJECT']);
-  });
-
-  test('should combine successful results', () => {
-    const result = Result.combine([Result.ok('a'), Result.ok(2)] as const);
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toEqual(['a', 2]);
-  });
-
-  test('should combine failed results and aggregate errors', () => {
-    const result = Result.combine([Result.ok('a'), Result.fail('E1'), Result.fail(['E2', 'E3'])]);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['E1', 'E2', 'E3']);
-  });
-
-  test('should combineAsync successful results', async () => {
-    const result = await Result.combineAsync([Promise.resolve(Result.ok('a')), Promise.resolve(Result.ok('b'))]);
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toEqual(['a', 'b']);
-  });
-
-  test('should combineAsync failed results', async () => {
-    const result = await Result.combineAsync([Promise.resolve(Result.ok('a')), Promise.resolve(Result.fail('E1'))]);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['E1']);
-  });
-
-  test('should throw when validator.throwsIfTrue for truthy boolean instance', () => {
-    const result = Result.ok(true);
-
-    expect(() => result.validator.throwsIfTrue('ERR_TRUE')).toThrow('ERR_TRUE');
-  });
-
-  test('should throw when validator.throwsIfFalse for falsy boolean instance', () => {
-    const result = Result.ok(false);
-
-    expect(() => result.validator.throwsIfFalse('ERR_FALSE')).toThrow('ERR_FALSE');
-  });
-
-  test('should throw when validator.throwsIfNull for null instance', () => {
-    const result = Result.ok<string>();
-
-    expect(() => result.validator.throwsIfNull('ERR_NULL')).toThrow('ERR_NULL');
-  });
-
-  test('should throw when validator.throwsIfNotNull for existing instance', () => {
-    const result = Result.ok('ok');
-
-    expect(() => result.validator.throwsIfNotNull('ERR_NOT_NULL')).toThrow('ERR_NOT_NULL');
-  });
-
-  test('should throw when validator.throwsIfFailed and result is failure', () => {
-    const result = Result.fail('ERR_FAILED');
-
-    expect(() => result.validator.throwsIfFailed()).toThrow('ERR_FAILED');
-  });
-
-  test('should allow chaining validations and custom exception factory', () => {
-    const result = Result.ok(true);
-
-    expect(() =>
-      result.validator
-        .throwsIfFalse()
-        .throwsIfNull()
-        .throwsIfTrue('CHAINED', (error) => new TypeError(String(error))),
-    ).toThrow(TypeError);
-  });
-
-  test('should not throw when validations are satisfied', () => {
-    const result = Result.ok(true);
-
-    expect(() => result.validator.throwsIfFalse().throwsIfNull()).not.toThrow();
-  });
-
-  test('should return original result at the end of fluent validation', () => {
-    const result = Result.ok(true);
-
-    const validatedResult = result.validator.throwsIfFalse().result;
-
-    expect(validatedResult).toBe(result);
-    expect(validatedResult.isOk).toBe(true);
-    expect(validatedResult.instance).toBe(true);
-  });
-
-  test('should convert to string for ok and fail', () => {
-    const ok = Result.ok({ a: 1 });
-    const fail = Result.fail('ERR');
-
-    expect(ok.toString()).toBe('Result.ok({"a":1})');
-    expect(fail.toString()).toBe('Result.fail(["ERR"])');
-  });
-});
+import { Result, StrongPassword } from "../../src"
+
+test("Deve criar um novo 'Result' com valor", () => {
+	const result = Result.ok(10)
+	expect(result.data).toBe(10)
+	expect(result.errors).toHaveLength(0)
+	expect(result.isFailure).toBeFalsy()
+	expect(result.isOk).toBeTruthy()
+})
+
+test("Deve criar um novo 'Result' com valor nulo", () => {
+	const result = Result.null()
+	expect(result.data).toBeNull()
+	expect(result.errors).toHaveLength(0)
+	expect(result.isFailure).toBeFalsy()
+	expect(result.isOk).toBeTruthy()
+})
+
+test("Deve criar um novo 'Result' com falha", () => {
+	const result = Result.fail("user.not-found")
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(1)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um novo 'Result' com falha a partir de um erro", () => {
+	const result = Result.fail(new Error("user.not-found"))
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(1)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um novo 'Result' com vários tipos de falha", () => {
+	const result = Result.fail([
+		{ code: "user.not-found" },
+		"user.not-authorized",
+		{ message: "user.not-logged" },
+		{ error: "user.not-logged" } as any,
+	])
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(4)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um novo 'Result' com falhas", () => {
+	const result = Result.fail(["user.not-found", "user.not-authorized"])
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(2)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um novo 'Result' com tentativa com falha", () => {
+	const result = Result.try(() => new StrongPassword("123"))
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(1)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um 'Result' com tentativa com sucesso", () => {
+	const result = Result.try(() => new StrongPassword("#Senha123"))
+	expect(result.data).toBeInstanceOf(StrongPassword)
+	expect(result.errors).toHaveLength(0)
+	expect(result.isFailure).toBeFalsy()
+	expect(result.isOk).toBeTruthy()
+})
+
+test("Deve combinar 'Result' com sucessos e falhas", () => {
+	const results = [Result.ok(10), Result.fail("user.not-found")]
+	const result = Result.combine(results)
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(1)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve combinar 'Result' com sucesso", () => {
+	const results = [Result.ok(10), Result.ok(20)]
+	const result = Result.combine(results)
+	expect(result.data).toHaveLength(2)
+	expect(result.errors).toHaveLength(0)
+	expect(result.isFailure).toBeFalsy()
+	expect(result.isOk).toBeTruthy()
+})
+
+test("Deve combinar 'Result' com falha", () => {
+	const results = [Result.fail("user.not-found"), Result.fail("user.not-authorized")]
+	const result = Result.combine(results)
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(2)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve criar um 'Result' com promise com sucesso", async () => {
+	const result = await Result.trySync(() => Promise.resolve(10))
+	expect(result.data).toBe(10)
+})
+
+test("Deve criar um 'Result' com promise com falha", async () => {
+	const result = await Result.trySync(() => Promise.reject(new Error("user.not-found")))
+	expect(result.data).toBeUndefined()
+	expect(result.errors).toHaveLength(1)
+	expect(result.isFailure).toBeTruthy()
+	expect(result.isOk).toBeFalsy()
+})
+
+test("Deve combinar 'Result' com promises com sucesso", async () => {
+	const results = [Promise.resolve(Result.ok(10)), Promise.resolve(Result.ok(20))]
+	const result = await Result.combineAsync(results)
+	expect(result.data).toHaveLength(2)
+	expect(result.errors).toHaveLength(0)
+	expect(result.isFailure).toBeFalsy()
+	expect(result.isOk).toBeTruthy()
+})
+
+describe("Result - API", () => {
+	test("isOk should return true on success", () => {
+		const result = Result.ok("hello")
+		expect(result.isOk).toBe(true)
+		expect(result.isFailure).toBe(false)
+	})
+
+	test("isFailure should return true on failure", () => {
+		const result = Result.fail("error")
+		expect(result.isOk).toBe(false)
+		expect(result.isFailure).toBe(true)
+	})
+
+	test("instance should return data value", () => {
+		const result = Result.ok("hello")
+		expect(result.instance).toBe("hello")
+	})
+
+	test("withFail should propagate failure as Result<any>", () => {
+		const result = Result.fail<string>("SOME_ERROR")
+		const propagated: Result<number> = result.withFail
+
+		expect(propagated.errors).toHaveLength(1)
+		expect(propagated.isFailure).toBe(true)
+		expect(propagated.errors[0]?.code).toBe("SOME_ERROR")
+	})
+})

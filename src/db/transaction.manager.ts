@@ -1,5 +1,9 @@
-export interface TransactionContext {}
+export type TransactionContext<Client = unknown> = {
+	client: Client
+}
 
-export interface TransactionManager<CTX extends TransactionContext = TransactionContext> {
-  runInTransaction<T>(operation: (context: CTX) => Promise<T>): Promise<T>;
+export type PrismaTransactionContext = TransactionContext
+
+export interface TransactionManager<Context = TransactionContext> {
+	runInTransaction<T>(fn: (context: Context) => Promise<T>): Promise<T>
 }

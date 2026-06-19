@@ -1,52 +1,43 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import ValidationError from "../base/validation.error"
+import Metadata from "../base/metadata"
+import { Result } from "../base"
 
-export class Email extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_EMAIL = 'INVALID_EMAIL';
-  constructor(value: string, config?: ValueObjectConfig) {
-    const email = value?.trim().toLowerCase();
-    if (!Email.isValid(email)) {
-      throw new Error('email.invalid');
-    }
+export default class Email {
+	constructor(
+		readonly value: string,
+		readonly meta?: Metadata,
+	) {
+		this.value = value?.trim().toLocaleLowerCase() ?? ""
 
-    super(email, config);
-  }
+		if (!Email.isValid(value)) {
+			throw new ValidationError({
+				code: "email.invalid",
+				meta: meta?.withValue(value).props,
+			})
+		}
+	}
 
-  get local(): string {
-    return this.value.split('@')?.[0] ?? '';
-  }
+	static create(value: string, meta?: Metadata): Email {
+		const result = Email.tryCreate(value, meta)
+		result.validator.throwsIfFailed()
+		return result.instance
+	}
 
-  get username(): string {
-    return this.local;
-  }
+	static tryCreate(value: string, meta?: Metadata): Result<Email> {
+		return Result.try(() => new Email(value, meta))
+	}
 
-  get domain(): string {
-    return this.value.split('@')?.[1] ?? '';
-  }
+	get username(): string {
+		return this.value!.split("@")[0]!
+	}
 
-  public static create(value: string, config?: ValueObjectConfig): Email {
-    const result = Email.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
+	get domain(): string {
+		return this.value!.split("@")[1]!
+	}
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Email> {
-    try {
-      const email = value.trim().toLowerCase();
-      if (!Email.isValid(email)) {
-        throw new Error(Email.INVALID_EMAIL);
-      }
-      return Result.ok(new Email(email, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
-  }
-
-  public static isValid(value: string): boolean {
-    if (!value || typeof value !== 'string') {
-      return false;
-    }
-
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(value);
-  }
+	static isValid(email: string): boolean {
+		const regex =
+			/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/
+		return regex.test(email)
+	}
 }

@@ -1,52 +1,38 @@
-import { DomainEvent } from '../events/domain-event';
-import { Entity, EntityDiff, EntityProps } from './entity';
-import { Result } from './result';
+import Entity, { EntityProps } from "./entity"
+import Metadata from "./metadata"
 
-export abstract class AggregateRoot<
-  Type,
-  Props extends EntityProps,
-  Event extends DomainEvent = DomainEvent,
+export default abstract class AggregateRoot<
+	Type,
+	Props extends EntityProps,
+	Event = unknown,
 > extends Entity<Type, Props> {
-  private pendingEvents: Event[] = [];
+	private pendingEvents: Event[] = []
 
-  protected addEvent(event: Event): void {
-    this.pendingEvents.push(event);
-  }
+	protected constructor(props: Props, meta?: Metadata) {
+		super(props, meta)
+	}
 
-  public hasEvents(): boolean {
-    return this.pendingEvents.length > 0;
-  }
+	protected addEvent(event: Event): void {
+		this.pendingEvents.push(event)
+	}
 
-  public peekEvents(): readonly Event[] {
-    return [...this.pendingEvents];
-  }
+	hasEvents(): boolean {
+		return this.pendingEvents.length > 0
+	}
 
-  public pullEvents(): Event[] {
-    const events = [...this.pendingEvents];
-    this.clearEvents();
-    return events;
-  }
+	peekEvents(): readonly Event[] {
+		return [...this.pendingEvents]
+	}
 
-  public clearEvents(): void {
-    this.pendingEvents = [];
-  }
+	pullEvents(): Event[] {
+		const events = [...this.pendingEvents]
+		this.clearEvents()
+		return events
+	}
 
-  public override cloneWith(overrides: Partial<Props>): Result<Type> {
-    const { props, diff } = this.cloneProps(overrides);
-    const clonedResult = (this.constructor as any).tryCreate(props) as Result<Type>;
-
-    if (clonedResult.isFailure) {
-      return clonedResult;
-    }
-
-    this.applyCloneEvents(clonedResult.instance as unknown as this, diff);
-
-    return clonedResult;
-  }
-
-  protected applyCloneEvents(cloned: this, diff: EntityDiff<Props>): void {
-    cloned.onClone(this, diff);
-  }
-
-  protected onClone(_previous: this, _diff: EntityDiff<Props>): void {}
+	clearEvents(): void {
+		this.pendingEvents = []
+	}
 }
+
+export { AggregateRoot }

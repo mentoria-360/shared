@@ -1,65 +1,62 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
-import ValidationError from '../base/validation.error';
+import ValidationError from "../base/validation.error"
+import Metadata from "../base/metadata"
+import { Result } from "../base"
 
-export class Url extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_URL = 'INVALID_URL';
+export default class Url {
+	private url: URL
 
-  constructor(value?: string, config?: ValueObjectConfig) {
-    const normalized = value?.trim();
-    if (!normalized || !Url.isValid(normalized)) {
-      throw new ValidationError({ code: 'url.invalid' });
-    }
+	constructor(
+		readonly value?: string,
+		meta?: Metadata,
+	) {
+		this.value = value ?? ""
 
-    super(normalized, config);
-  }
+		if (!Url.isValid(this.value)) {
+			throw new ValidationError({
+				code: "url.invalid",
+				meta: { ...meta?.props, value: this.value },
+			})
+		}
 
-  get domain(): string {
-    return new globalThis.URL(this.value).hostname;
-  }
+		this.url = new URL(this.value)
+	}
 
-  get protocol(): string {
-    return new globalThis.URL(this.value).protocol;
-  }
+	static create(value?: string, meta?: Metadata): Url {
+		const result = Url.tryCreate(value, meta)
+		result.validator.throwsIfFailed()
+		return result.instance
+	}
 
-  get pathname(): string {
-    return new globalThis.URL(this.value).pathname;
-  }
+	static tryCreate(value?: string, meta?: Metadata): Result<Url> {
+		return Result.try(() => new Url(value, meta))
+	}
 
-  get parameters(): Record<string, string> {
-    const params = new globalThis.URL(this.value).searchParams;
-    return Object.fromEntries(params.entries());
-  }
+	get protocol(): string {
+		return this.url.protocol
+	}
 
-  public static isValid(value: string): boolean {
-    try {
-      const parsed = new globalThis.URL(value);
-      return /^https?:$/.test(parsed.protocol);
-    } catch {
-      return false;
-    }
-  }
+	get domain(): string {
+		return this.url.hostname
+	}
 
-  public static create(value: string, config?: ValueObjectConfig): Url {
-    const result = Url.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
+	get pathname(): string {
+		return this.url.pathname
+	}
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Url> {
-    try {
-      const url = value.trim();
-      if (!Url.isValid(url)) {
-        throw new Error(Url.INVALID_URL);
-      }
-      return Result.ok(new Url(url, config));
-    } catch {
-      return Result.fail(Url.INVALID_URL);
-    }
-  }
-}
+	get parameters(): any {
+		const params = this.url.searchParams.toString().split("&")
+		return params.reduce((paramsObj, param) => {
+			const [key, value] = param.split("=")
+			return { ...paramsObj, [key!]: value }
+		}, {} as any)
+	}
 
-export class URL extends Url {
-  constructor(value?: string, config?: ValueObjectConfig) {
-    super(value, config);
-  }
+	static isValid(url: string): boolean {
+		try {
+			new URL(url)
+			return true
+		} catch {
+			return false
+		}
+	}
 }

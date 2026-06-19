@@ -1,50 +1,33 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
+import { Result } from "../base"
+import Metadata from "../base/metadata"
+import ValidationError from "../base/validation.error"
 
-export class StrongPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly WEAK_PASSWORD = 'WEAK_PASSWORD';
-  constructor(value?: string, config?: ValueObjectConfig) {
-    if (!StrongPassword.isStrong(value)) {
-      throw new Error('strong-password.too-weak');
-    }
+export default class StrongPassword {
+	static readonly REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/
 
-    super(value as string, config);
-  }
+	constructor(
+		readonly value?: string,
+		readonly meta?: Metadata,
+	) {
+		if (!StrongPassword.isValid(value ?? "")) {
+			throw new ValidationError({
+				code: "strong-password.too-weak",
+				meta: { ...meta?.props, value: undefined },
+			})
+		}
+	}
 
-  public static isStrong(value?: string): boolean {
-    if (!value || value.length < 8) return false;
-    if (!/[A-Z]/.test(value)) return false;
-    if (!/[a-z]/.test(value)) return false;
-    if (!/[0-9]/.test(value)) return false;
-    if (!/[^A-Za-z0-9]/.test(value)) return false;
-    return true;
-  }
+	static create(value?: string, meta?: Metadata): StrongPassword {
+		const result = StrongPassword.tryCreate(value, meta)
+		result.validator.throwsIfFailed()
+		return result.instance
+	}
 
-  public static create(value: string, config?: ValueObjectConfig): StrongPassword {
-    const result = StrongPassword.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
+	static tryCreate(value?: string, meta?: Metadata): Result<StrongPassword> {
+		return Result.try(() => new StrongPassword(value, meta))
+	}
 
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<StrongPassword> {
-    try {
-      if (value.length < 8) {
-        throw new Error(StrongPassword.WEAK_PASSWORD);
-      }
-      if (!/[A-Z]/.test(value)) {
-        throw new Error(StrongPassword.WEAK_PASSWORD);
-      }
-      if (!/[a-z]/.test(value)) {
-        throw new Error(StrongPassword.WEAK_PASSWORD);
-      }
-      if (!/[0-9]/.test(value)) {
-        throw new Error(StrongPassword.WEAK_PASSWORD);
-      }
-      if (!/[^A-Za-z0-9]/.test(value)) {
-        throw new Error(StrongPassword.WEAK_PASSWORD);
-      }
-      return Result.ok(new StrongPassword(value, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
-  }
+	static isValid(password: string): boolean {
+		return this.REGEX.test(password)
+	}
 }

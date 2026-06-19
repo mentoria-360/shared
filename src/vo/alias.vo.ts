@@ -1,87 +1,42 @@
-import { Result, ValueObject, ValueObjectConfig } from '../base';
-import ValidationError from '../base/validation.error';
+import { Result } from "../base"
+import Metadata from "../base/metadata"
+import ValidationError from "../base/validation.error"
 
-export class Alias extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_ALIAS = 'INVALID_ALIAS';
+export default class Alias {
+	constructor(
+		readonly value: string,
+		readonly meta?: Metadata,
+	) {
+		if (!Alias.isValid(value)) {
+			throw new ValidationError({
+				code: "alias.invalid",
+				meta: meta?.withValue(value).props,
+			})
+		}
+	}
 
-  constructor(value: string, config?: ValueObjectConfig) {
-    if (!Alias.isValid(value)) {
-      throw new ValidationError({ code: 'alias.invalid' });
-    }
+	static create(value: string, meta?: Metadata): Alias {
+		const result = Alias.tryCreate(value, meta)
+		result.validator.throwsIfFailed()
+		return result.instance
+	}
 
-    super(value, config);
-  }
+	static tryCreate(value: string, meta?: Metadata): Result<Alias> {
+		return Result.try(() => new Alias(value, meta))
+	}
 
-  public static create(value: string, config?: ValueObjectConfig): Alias {
-    const result = Alias.tryCreate(value, config);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
+	static format(text: string): string {
+		return text
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase()
+			.replace(/\s+/g, "-")
+			.replace(/-+/g, "-")
+			.replace(/^-/, "")
+			.replace(/[^a-z0-9-]/g, "")
+	}
 
-  public static format(value: string, allowTrailingHyphen = false): string {
-    if (typeof value !== 'string') {
-      return '';
-    }
-
-    const normalizedValue = value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-
-    const hasTrailingSeparator = /[^a-z0-9]$/.test(normalizedValue);
-
-    const formattedValue = normalizedValue
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    if (!allowTrailingHyphen || !hasTrailingSeparator || !formattedValue) {
-      return formattedValue;
-    }
-
-    return `${formattedValue}-`;
-  }
-
-  public static isValid(value: string): boolean {
-    if (typeof value !== 'string') {
-      return false;
-    }
-
-    const normalized = value.toLowerCase();
-    if (value !== normalized) {
-      return false;
-    }
-    if (normalized !== normalized.trim()) {
-      return false;
-    }
-    if (/\s/.test(normalized)) {
-      return false;
-    }
-
-    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized);
-  }
-
-  public static tryCreate(value: string, config?: ValueObjectConfig): Result<Alias> {
-    try {
-      if (typeof value !== 'string') {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-
-      const normalized = value.toLowerCase();
-
-      if (normalized !== normalized.trim()) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-      if (/\s/.test(normalized)) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
-        throw new Error(Alias.INVALID_ALIAS);
-      }
-
-      return Result.ok(new Alias(normalized, config));
-    } catch (error: any) {
-      return Result.fail(error.message ?? Alias.INVALID_ALIAS);
-    }
-  }
+	static isValid(text: string): boolean {
+		return /^[a-z0-9-]+$/.test(text)
+	}
 }

@@ -1,162 +1,133 @@
-import { ResultValidator } from './result-validator';
+import Message from "./message"
+import ResultValidator from "./result-validator"
+import ValidationError from "./validation.error"
 
-declare global {
-  interface String {
-    readonly code: string;
-    readonly value: string;
-    equals(other: string | { value: string }): boolean;
-  }
-}
+type ErrorMsg = string | Message | { message: string } | ValidationError
 
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'code')) {
-  Object.defineProperty(String.prototype, 'code', {
-    get() {
-      const raw = this.toString();
-      const mapped: Record<string, string> = {
-        INVALID_ALIAS: 'alias.invalid',
-        INVALID_EMAIL: 'email.invalid',
-        INVALID_HEX_COLOR: 'hexcolor.invalid',
-        INVALID_ID: 'id.invalid',
-        INVALID_ORDER: 'order.negative',
-        WEAK_PASSWORD: 'strong-password.too-weak',
-        MUST_HAVE_FIRST_AND_LAST_NAME: 'person-name.surname-missing',
-        INVALID_URL: 'url.invalid',
-      };
+export default class Result<T> {
+	constructor(
+		readonly data?: T | null,
+		readonly errors: Message[] = [],
+	) {}
 
-      return mapped[raw] ?? raw;
-    },
-    configurable: true,
-  });
-}
+	static ok<T>(data?: T): Result<T> {
+		return new Result<T>(data ?? null)
+	}
 
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'value')) {
-  Object.defineProperty(String.prototype, 'value', {
-    get() {
-      return this.toString();
-    },
-    configurable: true,
-  });
-}
+	static null(): Result<null> {
+		return Result.ok()
+	}
 
-if (!Object.getOwnPropertyDescriptor(String.prototype, 'equals')) {
-  Object.defineProperty(String.prototype, 'equals', {
-    value(other: string | { value: string }) {
-      if (typeof other === 'string') {
-        return this.toString() === other;
-      }
+	static empty<T>(): Result<T> {
+		return new Result<T>(null)
+	}
 
-      return this.toString() === other?.value;
-    },
-    configurable: true,
-    writable: true,
-  });
-}
+	static fail<T>(data: ErrorMsg | ErrorMsg[]): Result<T> {
+		return new Result<T>(undefined, Result.getErrors(data))
+	}
 
-export class Result<T> {
-  constructor(
-    private readonly _instance?: T | null,
-    private _errors?: string[],
-  ) {}
+	static try<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>
+	static try<T>(fn: () => Promise<T>): Promise<Result<T>>
+	static try<T>(fn: () => Result<T>): Result<T>
+	static try<T>(fn: () => T): Result<T>
+	static try<T>(fn: () => Promise<Result<T> | T> | Result<T> | T): Promise<Result<T>> | Result<T> {
+		try {
+			const result = fn()
+			if (Result.isPromise(result)) {
+				return result
+					.then((resolved) => (resolved instanceof Result ? resolved : Result.ok<T>(resolved)))
+					.catch((e: any) => Result.fail<T>(e))
+			}
 
-  static ok<T>(instance?: T): Result<T> {
-    return new Result<T>(instance ?? null);
-  }
+			return result instanceof Result ? result : Result.ok<T>(result)
+		} catch (e: any) {
+			return Result.fail<T>(e)
+		}
+	}
 
-  static fail<T>(e: string | string[]): Result<T> {
-    const erro = typeof e === 'string' ? [e] : e;
-    return new Result<T>(undefined, Array.isArray(erro) ? erro : [erro]);
-  }
+	static trySync<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>
+	static trySync<T>(fn: () => Promise<T>): Promise<Result<T>>
+	static trySync<T>(fn: () => Result<T>): Result<T>
+	static trySync<T>(fn: () => T): Result<T>
+	static trySync<T>(
+		fn: () => Promise<Result<T> | T> | Result<T> | T,
+	): Promise<Result<T>> | Result<T> {
+		try {
+			const result = fn()
+			if (Result.isPromise(result)) {
+				return result
+					.then((resolved) => (resolved instanceof Result ? resolved : Result.ok<T>(resolved)))
+					.catch((e: any) => Result.fail<T>(e))
+			}
 
-  static empty<T>(): Result<T> {
-    return new Result<T>(null);
-  }
+			return result instanceof Result ? result : Result.ok<T>(result)
+		} catch (e: any) {
+			return Result.fail<T>(e)
+		}
+	}
 
-  static async try<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>;
-  static async try<T>(fn: () => Promise<T>): Promise<Result<T>>;
-  static async try(fn: () => Promise<void>): Promise<Result<void>>;
-  static async try<T>(fn: () => Promise<Result<T> | T | void>): Promise<Result<T | void>> {
-    try {
-      const result = await fn();
-      if (result instanceof Result) {
-        return result;
-      }
+	static combine(results: (Result<any> | null)[]): Result<any> {
+		const errors = results.filter(Boolean).flatMap((r) => r!.errors)
+		const combinedData = results.filter(Boolean).map((r) => r!.data)
 
-      return Result.ok(result);
-    } catch (e: any) {
-      const error = e instanceof Error ? e.message : e;
-      return Result.fail<T | void>(error);
-    }
-  }
+		return errors.length > 0 ? Result.fail<any>(errors) : Result.ok<any>(combinedData)
+	}
 
-  static trySync<T>(fn: () => Result<T>): Result<T>;
-  static trySync<T>(fn: () => T): Result<T>;
-  static trySync<T>(fn: () => Result<T> | T): Result<T> {
-    try {
-      const result = fn();
-      if (result instanceof Result) {
-        return result;
-      }
+	static async combineAsync(results: Promise<Result<any>>[]): Promise<Result<any>> {
+		return Result.combine(await Promise.all(results))
+	}
 
-      return Result.ok<T>(result);
-    } catch (e: any) {
-      const error = e instanceof Error ? e.message : e;
-      return Result.fail<T>(error);
-    }
-  }
+	get isOk(): boolean {
+		return this.errors.length === 0
+	}
 
-  get instance(): T {
-    return this._instance!;
-  }
+	get isFailure(): boolean {
+		return this.errors.length > 0
+	}
 
-  get errors(): string[] {
-    const semErros = !this._errors || this._errors.length === 0;
-    if (semErros && this._instance === undefined) {
-      return ['RESULT_UNDEFINED'];
-    }
-    return this._errors as string[];
-  }
+	get instance(): T {
+		return this.data as T
+	}
 
-  get isOk(): boolean {
-    return !this.errors;
-  }
+	get withFail(): Result<any> {
+		return new Result<any>(undefined, this.errors)
+	}
 
-  get isFailure(): boolean {
-    return !!this.errors;
-  }
+	get validator(): ResultValidator<T, Result<T>> {
+		return new ResultValidator<T, Result<T>>(this)
+	}
 
-  get withFail(): Result<any> {
-    return Result.fail<any>(this.errors!);
-  }
+	toString(): string {
+		return this.isOk
+			? `Result.ok(${JSON.stringify(this.data)})`
+			: `Result.fail(${JSON.stringify(this.errors)})`
+	}
 
-  get validator(): ResultValidator<T, Result<T>> {
-    return new ResultValidator<T, Result<T>>(this);
-  }
+	private static getErrors(data: ErrorMsg | ErrorMsg[]): Message[] {
+		const input: any = data
+		if (Array.isArray(input)) {
+			return input.flatMap((f) => Result.getItem(f))
+		} else {
+			return [...Result.getItem(input)]
+		}
+	}
 
-  static combine<const R extends readonly Result<any>[]>(
-    results: R,
-  ): Result<{ [K in keyof R]: R[K] extends Result<infer T> ? T : never }> {
-    const errors = results.filter((r) => r.isFailure);
-    if (errors.length) {
-      return Result.fail(errors.flatMap((r) => r.errors!));
-    }
+	private static getItem(data: ErrorMsg): Message[] {
+		const input: any = data
+		if (input instanceof ValidationError) {
+			return input.messages
+		} else if (input?.["code"]) {
+			return [input]
+		} else if (input?.["message"]) {
+			return [{ code: input?.["message"] }]
+		} else if (typeof input === "string") {
+			return [{ code: input }]
+		} else {
+			return [{ code: "error.unknown" }]
+		}
+	}
 
-    const instances = results.map((r) => r._instance) as unknown as {
-      [K in keyof R]: R[K] extends Result<infer T> ? T : never;
-    };
-
-    return Result.ok(instances);
-  }
-
-  static async combineAsync<T>(results: Promise<Result<T>>[]): Promise<Result<T[]>> {
-    const rs = await Promise.all(results);
-    return Result.combine(rs);
-  }
-
-  toString(): string {
-    if (this.isOk) {
-      return `Result.ok(${JSON.stringify(this._instance)})`;
-    } else {
-      return `Result.fail(${JSON.stringify(this._errors)})`;
-    }
-  }
+	private static isPromise<T>(value: unknown): value is Promise<T> {
+		return !!value && typeof (value as Promise<T>).then === "function"
+	}
 }
