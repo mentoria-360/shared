@@ -110,6 +110,18 @@ export class Result<T> {
     return Result.ok(instances);
   }
 
+  static each<T>(value: unknown, tryCreate: (item: any) => Result<T>, errorCode: string): Result<T>[] {
+    if (value == null) {
+      return [];
+    }
+
+    if (!Array.isArray(value)) {
+      return [Result.fail<T>(errorCode)];
+    }
+
+    return value.map((item) => tryCreate(item));
+  }
+
   static async combineAsync<T>(results: Promise<Result<T>>[]): Promise<Result<T[]>> {
     const rs = await Promise.all(results);
     return Result.combine(rs);

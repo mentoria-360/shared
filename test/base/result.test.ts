@@ -190,6 +190,30 @@ describe('Result', () => {
     expect(result.errors).toEqual(['E1']);
   });
 
+  test('should return an empty list when each receives an absent collection', () => {
+    const result = Result.each(null, (item: string) => Result.ok(item), 'LIST_INVALID');
+
+    expect(result).toEqual([]);
+  });
+
+  test('should return a single failure when each receives a non-list value', () => {
+    const result = Result.each({} as unknown, (item: string) => Result.ok(item), 'LIST_INVALID');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.isFailure).toBe(true);
+    expect(result[0]?.errors).toEqual(['LIST_INVALID']);
+  });
+
+  test('should map each item through tryCreate when each receives a list', () => {
+    const result = Result.each(['a', 'b'], (item: string) => Result.ok(item.toUpperCase()), 'LIST_INVALID');
+
+    expect(result).toHaveLength(2);
+    expect(result[0]?.isOk).toBe(true);
+    expect(result[0]?.instance).toBe('A');
+    expect(result[1]?.isOk).toBe(true);
+    expect(result[1]?.instance).toBe('B');
+  });
+
   test('should throw when validator.throwsIfTrue for truthy boolean instance', () => {
     const result = Result.ok(true);
 
