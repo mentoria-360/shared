@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +20,13 @@ export class Id extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Id> {
+  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Id | null>;
+  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Id>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Id | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<Id | null>(null);
+    }
+
     return Result.try(() => {
       const hasValue = value !== undefined && value !== null && value !== '';
       const idValue = hasValue ? value!.trim().toLowerCase() : uuidv4();
@@ -32,12 +38,14 @@ export class Id extends ValueObject<string, ValueObjectConfig> {
     return uuidv4();
   }
 
-  public static required(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Id> {
-    if (!value) {
-      return Result.fail('id.invalid');
+  public static required(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Id | null>;
+  public static required(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Id>;
+  public static required(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Id | null> {
+    if (isEmptyValue(value)) {
+      return metaOrConfig?.optional ? Result.ok<Id | null>(null) : Result.fail('id.invalid');
     }
 
-    return Id.tryCreate(value, metaOrConfig);
+    return Id.tryCreate(value!, metaOrConfig);
   }
 
   public static isValid(value: string): boolean {

@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -19,8 +19,14 @@ export class HexColor extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<HexColor> {
-    return Result.try(() => new HexColor(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<HexColor | null>;
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<HexColor>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<HexColor | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<HexColor | null>(null);
+    }
+
+    return Result.try(() => new HexColor(value as string, resolveVoConfig(metaOrConfig)));
   }
 
   public static isValid(value: string): boolean {

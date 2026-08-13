@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -15,8 +15,14 @@ export class PositiveInteger extends ValueObject<number, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<PositiveInteger> {
-    return Result.try(() => new PositiveInteger(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: number | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<PositiveInteger | null>;
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<PositiveInteger>;
+  public static tryCreate(value: number | null | undefined, metaOrConfig?: ValueObjectConfig): Result<PositiveInteger | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<PositiveInteger | null>(null);
+    }
+
+    return Result.try(() => new PositiveInteger(value as number, resolveVoConfig(metaOrConfig)));
   }
 
   private static ensureValid(value: number): void {

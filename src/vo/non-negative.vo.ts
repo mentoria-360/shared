@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -21,7 +21,13 @@ export class NonNegative extends ValueObject<number, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<NonNegative> {
-    return Result.try(() => new NonNegative(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: number | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<NonNegative | null>;
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<NonNegative>;
+  public static tryCreate(value: number | null | undefined, metaOrConfig?: ValueObjectConfig): Result<NonNegative | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<NonNegative | null>(null);
+    }
+
+    return Result.try(() => new NonNegative(value as number, resolveVoConfig(metaOrConfig)));
   }
 }

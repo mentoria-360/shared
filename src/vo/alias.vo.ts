@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -47,8 +47,14 @@ export class Alias extends ValueObject<string, ValueObjectConfig> {
     }
   }
 
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Alias> {
-    return Result.try(() => new Alias(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Alias | null>;
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Alias>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Alias | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<Alias | null>(null);
+    }
+
+    return Result.try(() => new Alias(value as string, resolveVoConfig(metaOrConfig)));
   }
 
   private static normalize(value: string): string {

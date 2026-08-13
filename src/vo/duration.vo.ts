@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -25,8 +25,14 @@ export class Duration extends ValueObject<number, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<Duration> {
-    return Result.try(() => new Duration(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: number | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Duration | null>;
+  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<Duration>;
+  public static tryCreate(value: number | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Duration | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<Duration | null>(null);
+    }
+
+    return Result.try(() => new Duration(value as number, resolveVoConfig(metaOrConfig)));
   }
 
   static zero() {

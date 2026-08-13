@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -57,7 +57,13 @@ export class Text extends ValueObject<string, TextConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<Text> {
-    return Result.try(() => new Text(value, resolveVoConfig(metaOrConfig) as TextConfig));
+  public static tryCreate(value: string | null | undefined, config: OptionalConfig<TextConfig>): Result<Text | null>;
+  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<Text>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: TextConfig): Result<Text | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<Text | null>(null);
+    }
+
+    return Result.try(() => new Text(value as string, resolveVoConfig(metaOrConfig) as TextConfig));
   }
 }

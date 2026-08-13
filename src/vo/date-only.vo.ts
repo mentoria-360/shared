@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -20,8 +20,14 @@ export class DateOnly extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: DateOnlyInput, metaOrConfig?: Metadata | ValueObjectConfig): Result<DateOnly> {
-    return Result.try(() => new DateOnly(DateOnly.normalize(value), resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: DateOnlyInput | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<DateOnly | null>;
+  public static tryCreate(value: DateOnlyInput, metaOrConfig?: Metadata | ValueObjectConfig): Result<DateOnly>;
+  public static tryCreate(value: DateOnlyInput | null | undefined, metaOrConfig?: ValueObjectConfig): Result<DateOnly | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<DateOnly | null>(null);
+    }
+
+    return Result.try(() => new DateOnly(DateOnly.normalize(value as DateOnlyInput), resolveVoConfig(metaOrConfig)));
   }
 
   private static normalize(value: DateOnlyInput): string {

@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -34,8 +34,14 @@ export class Cpf extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Cpf> {
-    return Result.try(() => new Cpf(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Cpf | null>;
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Cpf>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Cpf | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<Cpf | null>(null);
+    }
+
+    return Result.try(() => new Cpf(value as string, resolveVoConfig(metaOrConfig)));
   }
 
   static format(v: string) {

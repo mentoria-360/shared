@@ -1,4 +1,4 @@
-import { ValueObject, ValueObjectConfig } from '../../src';
+import { ValueObject, ValueObjectConfig, isEmptyValue, Text } from '../../src';
 
 interface TestConfig extends ValueObjectConfig {
   attribute?: string;
@@ -28,5 +28,23 @@ describe('ValueObject', () => {
 
     expect(left.equals(right)).toBe(false);
     expect(left.notEquals(right)).toBe(true);
+  });
+});
+
+describe('isEmptyValue', () => {
+  test('should treat null, undefined, blank strings and NaN as empty', () => {
+    expect(isEmptyValue(null)).toBe(true);
+    expect(isEmptyValue(undefined)).toBe(true);
+    expect(isEmptyValue('   ')).toBe(true);
+    expect(isEmptyValue(NaN)).toBe(true);
+  });
+});
+
+describe('optional value objects', () => {
+  test('should resolve empty text input to null when optional is enabled', () => {
+    const result = Text.tryCreate('   ', { optional: true });
+
+    expect(result.isOk).toBe(true);
+    expect(result.instance).toBeNull();
   });
 });

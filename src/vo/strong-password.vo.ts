@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -27,7 +27,16 @@ export class StrongPassword extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<StrongPassword> {
-    return Result.try(() => new StrongPassword(value, resolveVoConfig(metaOrConfig)));
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<StrongPassword | null>;
+  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<StrongPassword>;
+  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<StrongPassword | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<StrongPassword | null>(null);
+    }
+
+    return Result.try(() => new StrongPassword(value as string, resolveVoConfig(metaOrConfig)));
   }
 }

@@ -1,5 +1,5 @@
 import { Result } from '../base/result';
-import { ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 import { HashPassword } from './hash-password.vo';
@@ -28,7 +28,19 @@ export class EncryptedPassword extends ValueObject<string, ValueObjectConfig> {
     return result.instance;
   }
 
-  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<EncryptedPassword> {
-    return Result.try(() => new EncryptedPassword(value ?? '', resolveVoConfig(metaOrConfig)));
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<EncryptedPassword | null>;
+  public static tryCreate(value?: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<EncryptedPassword>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<EncryptedPassword | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<EncryptedPassword | null>(null);
+    }
+
+    return Result.try(() => new EncryptedPassword((value ?? '') as string, resolveVoConfig(metaOrConfig)));
   }
 }
