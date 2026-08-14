@@ -32,4 +32,14 @@ describe('NonNegative', () => {
   test('should throw via create when value is negative', () => {
     expect(() => NonNegative.create(-1)).toThrow();
   });
+
+  test('should fail when value is not a finite number', () => {
+    const nan = NonNegative.tryCreate(Number.NaN);
+    const infinity = NonNegative.tryCreate(Number.POSITIVE_INFINITY);
+
+    expect(nan.isFailure).toBe(true);
+    expect(nan.errors).toContain('non-negative.invalid');
+    expect(infinity.isFailure).toBe(true);
+    expect(infinity.errors).toContain('non-negative.invalid');
+  });
 });

@@ -41,7 +41,11 @@ export class NonNegative extends ValueObject<number, ValueObjectConfig> {
       return Result.ok<NonNegative | null>(null);
     }
     try {
-      if ((value as number) < 0) {
+      if (
+        typeof value !== 'number' ||
+        !Number.isFinite(value) ||
+        value < 0
+      ) {
         throw new ValidationError({ code: NonNegative.INVALID_NON_NEGATIVE });
       }
 

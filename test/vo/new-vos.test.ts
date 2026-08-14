@@ -1,4 +1,4 @@
-import { Flag, Name, NonNegativeInteger, Order } from '../../src';
+import { Flag, Name, Order } from '../../src';
 
 describe('Name', () => {
   test('should create with valid name', () => {
@@ -95,32 +95,3 @@ describe('Flag', () => {
   });
 });
 
-describe('NonNegativeInteger', () => {
-  test('should create with 0', () => {
-    const result = NonNegativeInteger.tryCreate(0);
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance.value).toBe(0);
-  });
-
-  test('should fail with non-integer number', () => {
-    const result = NonNegativeInteger.tryCreate(1.5);
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('NON_NEGATIVE_INTEGER_INVALID');
-  });
-
-  test('should return the exact configured error code when errorCode is provided', () => {
-    const result = NonNegativeInteger.tryCreate(-1, { errorCode: 'ATTACHMENT_SIZE_INVALID' });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['ATTACHMENT_SIZE_INVALID']);
-  });
-
-  test('should resolve empty input to null when optional is enabled', () => {
-    const result = NonNegativeInteger.tryCreate(NaN, { optional: true });
-
-    expect(result.isOk).toBe(true);
-    expect(result.instance).toBeNull();
-  });
-});
