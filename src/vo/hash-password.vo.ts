@@ -17,6 +17,10 @@ export class HashPassword extends ValueObject<string, ValueObjectConfig> {
     super(value, config);
   }
 
+  public static isValid(hash: string): boolean {
+    return HashPassword.HASH_REGEX.test(hash?.trim() ?? '');
+  }
+
   public static create(
     value: string,
     metaOrConfig?: ValueObjectConfig,

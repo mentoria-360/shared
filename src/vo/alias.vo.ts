@@ -1,14 +1,23 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Alias extends ValueObject<string, ValueObjectConfig> {
+  private static readonly INVALID_ALIAS = 'alias.invalid';
+  static readonly ALIAS_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
   constructor(value: string, config?: ValueObjectConfig) {
-    super(Alias.normalize(value), config);
+    super(value, config);
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Alias {
+  public static create(value: string, metaOrConfig?: ValueObjectConfig): Alias {
     const result = Alias.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
@@ -38,36 +47,39 @@ export class Alias extends ValueObject<string, ValueObjectConfig> {
     return `${formattedValue}-`;
   }
 
-  public static isValid(value: string): boolean {
-    try {
-      Alias.normalize(value);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Alias | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Alias>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Alias | null> {
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<Alias | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Alias>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<Alias | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Alias | null>(null);
     }
+    try {
+      if (typeof value !== 'string') {
+        throw new ValidationError({ code: Alias.INVALID_ALIAS });
+      }
 
-    return Result.try(() => new Alias(value as string, resolveVoConfig(metaOrConfig)));
-  }
+      const alias = value.toLowerCase();
 
-  private static normalize(value: string): string {
-    if (typeof value !== 'string') {
-      throw new ValidationError({ code: 'alias.invalid' });
+      if (
+        alias !== alias.trim() ||
+        /\s/.test(alias) ||
+        !Alias.ALIAS_REGEX.test(alias)
+      ) {
+        throw new ValidationError({ code: Alias.INVALID_ALIAS });
+      }
+
+      return Result.ok(new Alias(alias, resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
     }
-
-    const normalized = value.toLowerCase();
-
-    if (normalized !== normalized.trim() || /\s/.test(normalized) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
-      throw new ValidationError({ code: 'alias.invalid' });
-    }
-
-    return normalized;
   }
 }

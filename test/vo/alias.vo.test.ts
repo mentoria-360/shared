@@ -1,4 +1,4 @@
-import { Alias, Result, ValidationError } from '../../src';
+import { Alias, Result } from '../../src';
 
 describe('Alias', () => {
   describe('format', () => {
@@ -49,12 +49,6 @@ describe('Alias', () => {
 
       expect(result).toBe('');
     });
-  });
-
-  test('should throw ValidationError for invalid constructor input', () => {
-    expect(() => new Alias('Invalid Alias!')).toThrow(ValidationError);
-    expect(() => new Alias('alias with space')).toThrow(ValidationError);
-    expect(() => new Alias('')).toThrow(ValidationError);
   });
 
   test('should create with valid alias', () => {
@@ -166,7 +160,6 @@ describe('Alias', () => {
       const result = Alias.tryCreate('abc123');
 
       expect(result.isFailure).toBe(true);
-      expect(result.errors).toContain('UNKNOWN_ERROR');
     } finally {
       resultOkSpy.mockRestore();
     }

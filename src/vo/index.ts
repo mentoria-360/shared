@@ -12,7 +12,6 @@ export * from './hex-color.vo';
 export * from './id.vo';
 export * from './name.vo';
 export * from './non-negative.vo';
-export * from './non-negative-integer.vo';
 export * from './order.vo';
 export * from './password.vo';
 export * from './person-name.vo';
