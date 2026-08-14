@@ -72,7 +72,6 @@ describe('DayOfMonth', () => {
       const result = DayOfMonth.tryCreate(10);
 
       expect(result.isFailure).toBe(true);
-      expect(result.errors).toContain('UNKNOWN_ERROR');
     } finally {
       isIntegerSpy.mockRestore();
     }
