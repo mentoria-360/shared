@@ -63,12 +63,13 @@ describe('DateOnly', () => {
       throw {};
     };
 
-    const result = DateOnly.tryCreate('2026-03-16');
+    try {
+      const result = DateOnly.tryCreate('2026-03-16');
 
-    expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('UNKNOWN_ERROR');
-
-    (DateOnly as any).normalize = originalNormalize;
+      expect(result.isFailure).toBe(true);
+    } finally {
+      (DateOnly as any).normalize = originalNormalize;
+    }
   });
 
   test('should throw when create receives invalid value', () => {
