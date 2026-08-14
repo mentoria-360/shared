@@ -1,16 +1,20 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Email extends ValueObject<string, ValueObjectConfig> {
-  constructor(value: string, config?: ValueObjectConfig) {
-    const email = value?.trim().toLowerCase();
-    if (!Email.isValid(email)) {
-      throw new ValidationError({ code: 'email.invalid' });
-    }
+  private static readonly INVALID_EMAIL = 'INVALID_EMAIL';
+  static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    super(email, config);
+  constructor(value: string, config?: ValueObjectConfig) {
+    super(value, config);
   }
 
   get local(): string {
@@ -25,28 +29,37 @@ export class Email extends ValueObject<string, ValueObjectConfig> {
     return this.value.split('@')?.[1] ?? '';
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Email {
+  public static create(value: string, metaOrConfig?: ValueObjectConfig): Email {
     const result = Email.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Email | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Email>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Email | null> {
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<Email | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Email>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<Email | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Email | null>(null);
     }
+    try {
+      const email = value?.trim().toLowerCase();
 
-    return Result.try(() => new Email(value as string, resolveVoConfig(metaOrConfig)));
-  }
+      if (!Email.EMAIL_REGEX.test(email ?? '')) {
+        throw new ValidationError({ code: Email.INVALID_EMAIL });
+      }
 
-  public static isValid(value: string): boolean {
-    if (!value || typeof value !== 'string') {
-      return false;
+      return Result.ok(new Email(email ?? '', resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
     }
-
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(value);
   }
 }

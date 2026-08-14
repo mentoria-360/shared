@@ -6,11 +6,15 @@ export interface ValueObjectConfig {
   optional?: boolean;
 }
 
-export type OptionalConfig<Config extends ValueObjectConfig = ValueObjectConfig> = Config & {
+export type OptionalConfig<
+  Config extends ValueObjectConfig = ValueObjectConfig,
+> = Config & {
   optional: true;
 };
 
-export function resolveVoConfig(metaOrConfig?: Metadata | ValueObjectConfig): ValueObjectConfig | undefined {
+export function resolveVoConfig(
+  metaOrConfig?: Metadata | ValueObjectConfig,
+): ValueObjectConfig | undefined {
   if (!metaOrConfig) return undefined;
   if (metaOrConfig instanceof Metadata) return { meta: metaOrConfig.props };
   return metaOrConfig;
@@ -24,10 +28,7 @@ export function isEmptyValue(value: unknown): boolean {
 }
 
 export abstract class ValueObject<T, Config extends ValueObjectConfig> {
-  constructor(
-    readonly value: T,
-    readonly config?: Config,
-  ) {}
+  constructor(readonly value: T, readonly config?: Config) {}
 
   equals(vo: ValueObject<T, Config>): boolean {
     return this.value === vo.value;
