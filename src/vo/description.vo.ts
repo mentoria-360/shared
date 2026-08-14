@@ -12,11 +12,10 @@ export class Description extends Text {
   };
 
   constructor(value: string, config?: TextConfig) {
-    const trimmed = Text.validateAndTrim(value, config, Description.rules);
-    super(trimmed, config, { prevalidated: true });
+    super(value, config, { prevalidated: true });
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | TextConfig): Description {
+  public static create(value: string, metaOrConfig?: TextConfig): Description {
     const result = Description.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
@@ -26,12 +25,28 @@ export class Description extends Text {
     value: string | null | undefined,
     config: OptionalConfig<TextConfig>,
   ): Result<Description | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<Description>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: TextConfig): Result<Description | null> {
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | TextConfig,
+  ): Result<Description>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: TextConfig,
+  ): Result<Description | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Description | null>(null);
     }
+    try {
+      const config = resolveVoConfig(metaOrConfig) as TextConfig;
+      const trimmed = Text.validateAndTrim(
+        value as string,
+        config,
+        Description.rules,
+      );
 
-    return Result.try(() => new Description(value as string, resolveVoConfig(metaOrConfig) as TextConfig));
+      return Result.ok(new Description(trimmed, config));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 }
