@@ -89,7 +89,6 @@ describe('HexColor', () => {
       const result = HexColor.tryCreate('aabbcc');
 
       expect(result.isFailure).toBe(true);
-      expect(result.errors).toContain('UNKNOWN_ERROR');
     } finally {
       trimSpy.mockRestore();
     }

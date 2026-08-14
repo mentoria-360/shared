@@ -1,32 +1,21 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class HexColor extends ValueObject<string, ValueObjectConfig> {
+  private static readonly INVALID_HEX_COLOR = 'hex-color.invalid';
+  static readonly HEX_REGEX =
+    /^#(?:[0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/;
+
   constructor(value: string, config?: ValueObjectConfig) {
-    const normalized = HexColor.normalize(value);
-    if (!HexColor.isValid(normalized)) {
-      throw new ValidationError({ code: 'hex-color.invalid' });
-    }
-
-    super(normalized, config);
-  }
-
-  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): HexColor {
-    const result = HexColor.tryCreate(value, metaOrConfig);
-    result.validator.throwsIfFailed();
-    return result.instance;
-  }
-
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<HexColor | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<HexColor>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<HexColor | null> {
-    if (metaOrConfig?.optional && isEmptyValue(value)) {
-      return Result.ok<HexColor | null>(null);
-    }
-
-    return Result.try(() => new HexColor(value as string, resolveVoConfig(metaOrConfig)));
+    super(value, config);
   }
 
   public static isValid(value: string): boolean {
@@ -34,8 +23,41 @@ export class HexColor extends ValueObject<string, ValueObjectConfig> {
       return false;
     }
 
-    const regex = /^#(?:[0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/;
-    return regex.test(value.trim().toUpperCase());
+    return HexColor.HEX_REGEX.test(value.trim().toUpperCase());
+  }
+
+  public static create(value: string, metaOrConfig?: ValueObjectConfig): HexColor {
+    const result = HexColor.tryCreate(value, metaOrConfig);
+    result.validator.throwsIfFailed();
+    return result.instance;
+  }
+
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<HexColor | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<HexColor>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<HexColor | null> {
+    if (metaOrConfig?.optional && isEmptyValue(value)) {
+      return Result.ok<HexColor | null>(null);
+    }
+    try {
+      const normalized = HexColor.normalize(value as string);
+
+      if (!HexColor.HEX_REGEX.test(normalized)) {
+        throw new ValidationError({ code: HexColor.INVALID_HEX_COLOR });
+      }
+
+      return Result.ok(new HexColor(normalized, resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 
   private static normalize(value: string): string {

@@ -51,8 +51,8 @@ describe('StrongPassword', () => {
 
   test('should throw when create receives weak password', () => {
     expect(() => StrongPassword.create('weak')).toThrow();
-    expect(() => new StrongPassword('1234567890')).toThrow('strong-password.too-weak');
-    expect(() => new StrongPassword()).toThrow('strong-password.too-weak');
+    expect(() => StrongPassword.create('1234567890')).toThrow('strong-password.too-weak');
+    expect(() => StrongPassword.create(undefined as unknown as string)).toThrow('strong-password.too-weak');
   });
 
   test('should map invalid tryCreate error code', () => {

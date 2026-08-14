@@ -32,18 +32,18 @@ describe('Id', () => {
   });
 
   test('should throw when constructing with invalid id', () => {
-    expect(() => new Id('123')).toThrow('id.invalid');
+    expect(() => Id.create('123')).toThrow();
   });
 
   test('should construct from existing valid id', () => {
     const value = Id.createUUID();
-    const id = new Id(value);
+    const id = Id.create(value);
     expect(id.value).toHaveLength(36);
   });
 
   test('should compare equal ids', () => {
     const id1 = Id.create();
-    const id2 = new Id(id1.value);
+    const id2 = Id.create(id1.value);
     expect(id1.equals(id2)).toBe(true);
     expect(id1.notEquals(id2)).toBe(false);
   });

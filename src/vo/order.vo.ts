@@ -1,11 +1,18 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
+import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Order extends ValueObject<number, ValueObjectConfig> {
   private static readonly INVALID_ORDER = 'INVALID_ORDER';
 
-  private constructor(value: number, config?: ValueObjectConfig) {
+  constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);
   }
 
@@ -19,17 +26,31 @@ export class Order extends ValueObject<number, ValueObjectConfig> {
     value: number | null | undefined,
     config: OptionalConfig<ValueObjectConfig>,
   ): Result<Order | null>;
-  public static tryCreate(value: number, config?: ValueObjectConfig): Result<Order>;
-  public static tryCreate(value: number | null | undefined, config?: ValueObjectConfig): Result<Order | null> {
+  public static tryCreate(
+    value: number,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Order>;
+  public static tryCreate(
+    value: number | null | undefined,
+    config?: ValueObjectConfig,
+  ): Result<Order | null> {
     if (config?.optional && isEmptyValue(value)) {
       return Result.ok<Order | null>(null);
     }
+    try {
+      if (
+        typeof value !== 'number' ||
+        !Number.isFinite(value) ||
+        !Number.isInteger(value) ||
+        value < 0
+      ) {
+        throw new ValidationError({ code: Order.INVALID_ORDER });
+      }
 
-    if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
-      return Result.fail(Order.INVALID_ORDER);
+      return Result.ok(new Order(value, resolveVoConfig(config)));
+    } catch (error: any) {
+      return Result.fail(error.message);
     }
-
-    return Result.ok(new Order(value, config));
   }
 
   public static try(value: number, config?: ValueObjectConfig): Result<Order> {

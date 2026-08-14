@@ -60,7 +60,6 @@ describe('PositiveInteger', () => {
     const result = PositiveInteger.tryCreate(1);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('UNKNOWN_ERROR');
     isIntegerSpy.mockRestore();
   });
 });

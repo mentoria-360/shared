@@ -2,15 +2,15 @@ import { Password } from '../../src';
 
 describe('Password', () => {
   test('should create non-empty password', () => {
-    expect(new Password('123').value).toBe('123');
-    expect(new Password('abc123').value).toBe('abc123');
-    expect(new Password('%%StrongPassword123').value).toBe('%%StrongPassword123');
+    expect(Password.create('123').value).toBe('123');
+    expect(Password.create('abc123').value).toBe('abc123');
+    expect(Password.create('%%StrongPassword123').value).toBe('%%StrongPassword123');
   });
 
   test('should throw when password is empty', () => {
-    expect(() => new Password(undefined as any)).toThrow('password.empty');
-    expect(() => new Password('')).toThrow('password.empty');
-    expect(() => new Password('     ')).toThrow('password.empty');
+    expect(() => Password.create(undefined as any)).toThrow('password.empty');
+    expect(() => Password.create('')).toThrow('password.empty');
+    expect(() => Password.create('     ')).toThrow('password.empty');
   });
 
   test('should tryCreate valid password', () => {

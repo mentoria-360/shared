@@ -12,11 +12,13 @@ export class ShortDescription extends Text {
   };
 
   constructor(value: string, config?: TextConfig) {
-    const trimmed = Text.validateAndTrim(value, config, ShortDescription.rules);
-    super(trimmed, config, { prevalidated: true });
+    super(value, config);
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | TextConfig): ShortDescription {
+  public static create(
+    value: string,
+    metaOrConfig?: TextConfig,
+  ): ShortDescription {
     const result = ShortDescription.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
@@ -26,12 +28,28 @@ export class ShortDescription extends Text {
     value: string | null | undefined,
     config: OptionalConfig<TextConfig>,
   ): Result<ShortDescription | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<ShortDescription>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: TextConfig): Result<ShortDescription | null> {
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | TextConfig,
+  ): Result<ShortDescription>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: TextConfig,
+  ): Result<ShortDescription | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<ShortDescription | null>(null);
     }
+    try {
+      const config = resolveVoConfig(metaOrConfig) as TextConfig;
+      const trimmed = Text.validateAndTrim(
+        value as string,
+        config,
+        ShortDescription.rules,
+      );
 
-    return Result.try(() => new ShortDescription(value as string, resolveVoConfig(metaOrConfig) as TextConfig));
+      return Result.ok(new ShortDescription(trimmed, config));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 }

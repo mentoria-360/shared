@@ -1,5 +1,11 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
@@ -23,15 +29,11 @@ export class Text extends ValueObject<string, TextConfig> {
     tooLongCode: 'text.too-long',
   };
 
-  constructor(value: string, config?: TextConfig, options?: { prevalidated?: boolean }) {
-    const trimmed = options?.prevalidated
-      ? (value?.trim() ?? '')
-      : Text.validateAndTrim(value, config, Text.rules);
-
-    super(trimmed, config);
+  constructor(value: string, config?: TextConfig) {
+    super(value, config);
   }
 
-  protected static validateAndTrim(
+  public static validateAndTrim(
     value: string,
     config: TextConfig | undefined,
     rules: TextValidationRules,
@@ -51,19 +53,34 @@ export class Text extends ValueObject<string, TextConfig> {
     return trimmed;
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | TextConfig): Text {
+  public static create(value: string, metaOrConfig?: TextConfig): Text {
     const result = Text.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<TextConfig>): Result<Text | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | TextConfig): Result<Text>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: TextConfig): Result<Text | null> {
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<TextConfig>,
+  ): Result<Text | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | TextConfig,
+  ): Result<Text>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: TextConfig,
+  ): Result<Text | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Text | null>(null);
     }
+    try {
+      const config = resolveVoConfig(metaOrConfig) as TextConfig;
+      const trimmed = Text.validateAndTrim(value as string, config, Text.rules);
 
-    return Result.try(() => new Text(value as string, resolveVoConfig(metaOrConfig) as TextConfig));
+      return Result.ok(new Text(trimmed, config));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 }

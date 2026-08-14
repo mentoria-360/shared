@@ -1,16 +1,19 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Url extends ValueObject<string, ValueObjectConfig> {
-  constructor(value?: string, config?: ValueObjectConfig) {
-    const normalized = value?.trim();
-    if (!normalized || !Url.isValid(normalized)) {
-      throw new ValidationError({ code: 'url.invalid' });
-    }
+  private static readonly INVALID_URL = 'url.invalid';
 
-    super(normalized, config);
+  constructor(value: string, config?: ValueObjectConfig) {
+    super(value, config);
   }
 
   get domain(): string {
@@ -39,19 +42,37 @@ export class Url extends ValueObject<string, ValueObjectConfig> {
     }
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Url {
+  public static create(value: string, metaOrConfig?: ValueObjectConfig): Url {
     const result = Url.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Url | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Url>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Url | null> {
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<Url | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Url>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<Url | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Url | null>(null);
     }
+    try {
+      const normalized = value?.trim() ?? '';
 
-    return Result.try(() => new Url(value as string, resolveVoConfig(metaOrConfig)));
+      if (!normalized || !Url.isValid(normalized)) {
+        throw new ValidationError({ code: Url.INVALID_URL });
+      }
+
+      return Result.ok(new Url(normalized, resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 }

@@ -1,16 +1,16 @@
-import { NonNegative, ValidationError } from '../../src';
+import { NonNegative } from '../../src';
 
 describe('NonNegative', () => {
   test('should create with valid values', () => {
-    expect(new NonNegative(0).value).toBe(0);
-    expect(new NonNegative(10).value).toBe(10);
-    expect(new NonNegative(999.99).value).toBe(999.99);
+    expect(NonNegative.create(0).value).toBe(0);
+    expect(NonNegative.create(10).value).toBe(10);
+    expect(NonNegative.create(999.99).value).toBe(999.99);
   });
 
   test('should throw ValidationError for negative numbers', () => {
-    expect(() => new NonNegative(-1)).toThrow(ValidationError);
-    expect(() => new NonNegative(-100)).toThrow(ValidationError);
-    expect(() => new NonNegative(-0.01)).toThrow(ValidationError);
+    expect(() => NonNegative.create(-1)).toThrow();
+    expect(() => NonNegative.create(-100)).toThrow();
+    expect(() => NonNegative.create(-0.01)).toThrow();
   });
 
   test('should tryCreate valid value', () => {

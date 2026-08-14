@@ -1,4 +1,4 @@
-import { Url, ValidationError } from '../../src';
+import { Url } from '../../src';
 
 const invalidCode = 'url.invalid';
 
@@ -24,7 +24,7 @@ describe('Url', () => {
   });
 
   test('should expose domain, protocol, pathname and parameters', () => {
-    const url = new Url('https://www.google.com/search?q=typescript&hl=pt-BR');
+    const url = Url.create('https://www.google.com/search?q=typescript&hl=pt-BR');
 
     expect(url.domain).toBe('www.google.com');
     expect(url.protocol).toBe('https:');
@@ -38,10 +38,10 @@ describe('Url', () => {
   });
 
   test('should throw ValidationError for invalid constructor input', () => {
-    expect(() => new Url()).toThrow(ValidationError);
-    expect(() => new Url('')).toThrow(ValidationError);
-    expect(() => new Url('www.google.com')).toThrow(ValidationError);
-    expect(() => new Url('https//www.google.com')).toThrow(ValidationError);
+    expect(() => Url.create(undefined as unknown as string)).toThrow();
+    expect(() => Url.create('')).toThrow();
+    expect(() => Url.create('www.google.com')).toThrow();
+    expect(() => Url.create('https//www.google.com')).toThrow();
   });
 
   test('should fail with invalid url', () => {

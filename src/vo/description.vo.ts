@@ -12,7 +12,7 @@ export class Description extends Text {
   };
 
   constructor(value: string, config?: TextConfig) {
-    super(value, config, { prevalidated: true });
+    super(value, config);
   }
 
   public static create(value: string, metaOrConfig?: TextConfig): Description {
