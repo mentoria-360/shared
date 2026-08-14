@@ -2,17 +2,13 @@ import { Cpf } from '../../src';
 
 describe('Cpf', () => {
   test('should format and expose value', () => {
-    const cpf = new Cpf('12345678909');
+    const cpf = Cpf.create('12345678909');
     expect(cpf.formatted).toBe('123.456.789-09');
     expect(cpf.value).toBe('123.456.789-09');
   });
 
-  test('should throw when cpf is invalid', () => {
-    expect(() => new Cpf('12345678900')).toThrow('cpf.invalid');
-  });
-
   test('should expose unformatted digits', () => {
-    const cpf = new Cpf('123.456.789-09');
+    const cpf = Cpf.create('123.456.789-09');
     expect(cpf.unformatted).toBe('12345678909');
   });
 

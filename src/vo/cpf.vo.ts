@@ -1,23 +1,19 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Cpf extends ValueObject<string, ValueObjectConfig> {
+  private static readonly INVALID_CPF = 'cpf.invalid';
+
   constructor(value: string, config?: ValueObjectConfig) {
-    const v = Cpf.onlyNumbers(value);
-
-    if (!Cpf.isValid(v)) {
-      throw new ValidationError({
-        code: 'cpf.invalid',
-        meta: {
-          ...config?.meta,
-          value: Cpf.format(v),
-        },
-      });
-    }
-
-    super(Cpf.format(v), config);
+    super(value, config);
   }
 
   get formatted(): string {
@@ -28,20 +24,48 @@ export class Cpf extends ValueObject<string, ValueObjectConfig> {
     return Cpf.onlyNumbers(this.value);
   }
 
-  public static create(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Cpf {
+  public static isValid(cpf: string): boolean {
+    if (!cpf) return false;
+    const nums = cpf.split('').filter((v) => '0123456789'.includes(v));
+    if (nums.length !== 11) return false;
+
+    const v1 = this.validateCheckDigit(nums.slice(0, 9), nums[9]!);
+    const v2 = this.validateCheckDigit(nums.slice(0, 10), nums[10]!);
+    return v1 && v2;
+  }
+
+  public static create(value: string, metaOrConfig?: ValueObjectConfig): Cpf {
     const result = Cpf.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: string | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Cpf | null>;
-  public static tryCreate(value: string, metaOrConfig?: Metadata | ValueObjectConfig): Result<Cpf>;
-  public static tryCreate(value: string | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Cpf | null> {
+  public static tryCreate(
+    value: string | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<Cpf | null>;
+  public static tryCreate(
+    value: string,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Cpf>;
+  public static tryCreate(
+    value: string | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<Cpf | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Cpf | null>(null);
     }
+    try {
+      const numbers = Cpf.onlyNumbers(value ?? '');
 
-    return Result.try(() => new Cpf(value as string, resolveVoConfig(metaOrConfig)));
+      if (!Cpf.isValid(numbers)) {
+        throw new ValidationError({ code: Cpf.INVALID_CPF });
+      }
+
+      return Result.ok(new Cpf(Cpf.format(numbers), resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 
   static format(v: string) {
@@ -51,16 +75,6 @@ export class Cpf extends ValueObject<string, ValueObjectConfig> {
       const dash = [11].includes(cpf.length) ? '-' : '';
       return `${cpf}${dot}${dash}${num}`;
     }, '');
-  }
-
-  static isValid(cpf: string): boolean {
-    if (!cpf) return false;
-    const nums = cpf.split('').filter((v) => '0123456789'.includes(v));
-    if (nums.length !== 11) return false;
-
-    const v1 = this.validateCheckDigit(nums.slice(0, 9), nums[9]!);
-    const v2 = this.validateCheckDigit(nums.slice(0, 10), nums[10]!);
-    return v1 && v2;
   }
 
   private static onlyNumbers(cpf: string): string {
