@@ -1,51 +1,73 @@
 import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, ValueObject, ValueObjectConfig, resolveVoConfig } from '../base/vo';
+import {
+  OptionalConfig,
+  isEmptyValue,
+  ValueObject,
+  ValueObjectConfig,
+  resolveVoConfig,
+} from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Duration extends ValueObject<number, ValueObjectConfig> {
+  private static readonly NEGATIVE_DURATION = 'duration.negative';
   static readonly ONE_MINUTE: number = 60;
   static readonly ONE_HOUR: number = 3600;
   static readonly ONE_DAY: number = 86400;
 
   constructor(value: number, config?: ValueObjectConfig) {
-    if (value < 0) {
-      throw new ValidationError({
-        code: 'duration.negative',
-        meta: config?.meta ? { ...config.meta, value } : { value },
-      });
-    }
-
     super(value, config);
   }
 
-  public static create(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Duration {
+  public static create(
+    value: number,
+    metaOrConfig?: ValueObjectConfig,
+  ): Duration {
     const result = Duration.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
-  public static tryCreate(value: number | null | undefined, config: OptionalConfig<ValueObjectConfig>): Result<Duration | null>;
-  public static tryCreate(value: number, metaOrConfig?: Metadata | ValueObjectConfig): Result<Duration>;
-  public static tryCreate(value: number | null | undefined, metaOrConfig?: ValueObjectConfig): Result<Duration | null> {
+  public static tryCreate(
+    value: number | null | undefined,
+    config: OptionalConfig<ValueObjectConfig>,
+  ): Result<Duration | null>;
+  public static tryCreate(
+    value: number,
+    metaOrConfig?: Metadata | ValueObjectConfig,
+  ): Result<Duration>;
+  public static tryCreate(
+    value: number | null | undefined,
+    metaOrConfig?: ValueObjectConfig,
+  ): Result<Duration | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<Duration | null>(null);
     }
+    try {
+      if ((value as number) < 0) {
+        throw new ValidationError({ code: Duration.NEGATIVE_DURATION });
+      }
 
-    return Result.try(() => new Duration(value as number, resolveVoConfig(metaOrConfig)));
+      return Result.ok(new Duration(value as number, resolveVoConfig(metaOrConfig)));
+    } catch (error: any) {
+      return Result.fail(error.message);
+    }
   }
 
   static zero() {
-    return new Duration(0);
+    return Duration.create(0);
   }
 
   static inSeconds(seconds: number) {
-    return new Duration(seconds);
+    return Duration.create(seconds);
   }
 
   static from(_: { d?: number; h?: number; m?: number; s?: number }) {
-    return new Duration(
-      (_.d ?? 0) * this.ONE_DAY + (_.h ?? 0) * this.ONE_HOUR + (_.m ?? 0) * this.ONE_MINUTE + (_.s ?? 0),
+    return Duration.create(
+      (_.d ?? 0) * this.ONE_DAY +
+        (_.h ?? 0) * this.ONE_HOUR +
+        (_.m ?? 0) * this.ONE_MINUTE +
+        (_.s ?? 0),
     );
   }
 
