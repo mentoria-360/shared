@@ -7,14 +7,18 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { ValidationError } from '../base/validation-error';
 
 export class Email extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_EMAIL = 'INVALID_EMAIL';
+  private static readonly INVALID_EMAIL = 'email.invalid';
+  private static readonly INVALID_EMAIL_ALIAS = 'INVALID_EMAIL';
   static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);
+  }
+
+  public static isValid(value: string): boolean {
+    return Email.EMAIL_REGEX.test(value?.trim().toLowerCase() ?? '');
   }
 
   get local(): string {
@@ -54,7 +58,7 @@ export class Email extends ValueObject<string, ValueObjectConfig> {
       const email = value?.trim().toLowerCase();
 
       if (!Email.EMAIL_REGEX.test(email ?? '')) {
-        throw new ValidationError({ code: Email.INVALID_EMAIL });
+        return Result.fail([Email.INVALID_EMAIL, Email.INVALID_EMAIL_ALIAS]);
       }
 
       return Result.ok(new Email(email ?? '', resolveVoConfig(metaOrConfig)));

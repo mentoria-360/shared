@@ -28,17 +28,18 @@ describe('Email', () => {
     expect(Email.isValid('user@email')).toBe(false);
   });
 
-  test('should throw when constructing invalid email', () => {
-    expect(() => new Email(undefined as any)).toThrow('email.invalid');
-    expect(() => new Email('')).toThrow('email.invalid');
-    expect(() => new Email('fulano')).toThrow('email.invalid');
-    expect(() => new Email('fulano@zmail')).toThrow('email.invalid');
+  test('should throw when creating invalid email', () => {
+    expect(() => Email.create(undefined as any)).toThrow('email.invalid');
+    expect(() => Email.create('')).toThrow('email.invalid');
+    expect(() => Email.create('fulano')).toThrow('email.invalid');
+    expect(() => Email.create('fulano@zmail')).toThrow('email.invalid');
   });
 
   test('should map invalid tryCreate error code', () => {
     const result = Email.tryCreate('invalid-email@');
     expect(result.isFailure).toBe(true);
     expect(result.errors[0]).toBe('email.invalid');
+    expect(result.errors).toContain('INVALID_EMAIL');
   });
 
   test('should return empty local when split result is undefined', () => {
