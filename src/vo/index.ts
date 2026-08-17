@@ -15,6 +15,7 @@ export * from './non-negative.vo';
 export * from './order.vo';
 export * from './password.vo';
 export * from './person-name.vo';
+export * from './phone.vo';
 export * from './positive-integer.vo';
 export * from './short-description.vo';
 export * from './strong-password.vo';
