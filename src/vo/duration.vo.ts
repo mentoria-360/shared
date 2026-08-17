@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Duration extends ValueObject<number, ValueObjectConfig> {
-  private static readonly NEGATIVE_DURATION = 'duration.negative';
+  private static readonly NEGATIVE_DURATION = 'DURATION_NEGATIVE';
   static readonly ONE_MINUTE: number = 60;
   static readonly ONE_HOUR: number = 3600;
   static readonly ONE_DAY: number = 86400;
@@ -48,7 +48,9 @@ export class Duration extends ValueObject<number, ValueObjectConfig> {
         throw new ValidationError({ code: Duration.NEGATIVE_DURATION });
       }
 
-      return Result.ok(new Duration(value as number, resolveVoConfig(metaOrConfig)));
+      return Result.ok(
+        new Duration(value as number, resolveVoConfig(metaOrConfig)),
+      );
     } catch (error: any) {
       return Result.fail(error.message);
     }

@@ -11,7 +11,8 @@ import { ValidationError } from '../base/validation-error';
 import { HashPassword } from './hash-password.vo';
 
 export class EncryptedPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_ENCRYPTED_PASSWORD = 'encrypted-password.invalid';
+  private static readonly INVALID_ENCRYPTED_PASSWORD =
+    'ENCRYPTED_PASSWORD_INVALID';
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);
@@ -54,7 +55,9 @@ export class EncryptedPassword extends ValueObject<string, ValueObjectConfig> {
         });
       }
 
-      return Result.ok(new EncryptedPassword(hash, resolveVoConfig(metaOrConfig)));
+      return Result.ok(
+        new EncryptedPassword(hash, resolveVoConfig(metaOrConfig)),
+      );
     } catch (error: any) {
       return Result.fail(error.message);
     }

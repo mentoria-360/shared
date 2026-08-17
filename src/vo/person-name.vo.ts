@@ -12,9 +12,9 @@ import { ValidationError } from '../base/validation-error';
 interface PersonNameConfig extends ValueObjectConfig {}
 
 export class PersonName extends ValueObject<string, PersonNameConfig> {
-  private static readonly TOO_SHORT = 'person-name.too-short';
-  private static readonly TOO_LONG = 'person-name.too-long';
-  private static readonly SURNAME_MISSING = 'person-name.surname-missing';
+  private static readonly TOO_SHORT = 'PERSON_NAME_TOO_SHORT';
+  private static readonly TOO_LONG = 'PERSON_NAME_TOO_LONG';
+  private static readonly SURNAME_MISSING = 'PERSON_NAME_SURNAME_MISSING';
   static readonly NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ'`´^~\- ]+$/;
 
   constructor(value: string, config?: PersonNameConfig) {

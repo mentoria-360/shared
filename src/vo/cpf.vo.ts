@@ -1,98 +1,101 @@
-import { Result } from '../base/result';
 import {
-  OptionalConfig,
   isEmptyValue,
+  OptionalConfig,
+  Result,
   ValueObject,
   ValueObjectConfig,
-  resolveVoConfig,
-} from '../base/vo';
-import { Metadata } from '../base/metadata';
+} from '../base';
 import { ValidationError } from '../base/validation-error';
 
-export class Cpf extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_CPF = 'cpf.invalid';
+export interface CpfConfig extends ValueObjectConfig {
+  checkDigit?: boolean;
+}
 
-  constructor(value: string, config?: ValueObjectConfig) {
+export class Cpf extends ValueObject<string, CpfConfig> {
+  public static readonly INVALID_FORMAT: string = 'CPF_INVALID_FORMAT';
+  public static readonly INVALID_LENGTH: string = 'CPF_INVALID_LENGTH';
+  public static readonly REPEATED_SEQUENCE: string = 'CPF_REPEATED_SEQUENCE';
+  public static readonly INVALID_CHECK_DIGIT: string =
+    'CPF_INVALID_CHECK_DIGIT';
+
+  private static readonly DIGIT_COUNT: number = 11;
+  private static readonly MOD_11_BASE: number = 11;
+  private static readonly ACCEPTED_CHARS: RegExp = /^[0-9.\- ]+$/;
+  private static readonly NON_DIGIT: RegExp = /\D/g;
+
+  private constructor(value: string, config?: CpfConfig) {
     super(value, config);
   }
 
   get formatted(): string {
-    return this.value;
+    const value = this.value;
+    return `${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(
+      6,
+      9,
+    )}-${value.slice(9, 11)}`;
   }
 
-  get unformatted(): string {
-    return Cpf.onlyNumbers(this.value);
-  }
-
-  public static isValid(cpf: string): boolean {
-    if (!cpf) return false;
-    const nums = cpf.split('').filter((v) => '0123456789'.includes(v));
-    if (nums.length !== 11) return false;
-
-    const v1 = this.validateCheckDigit(nums.slice(0, 9), nums[9]!);
-    const v2 = this.validateCheckDigit(nums.slice(0, 10), nums[10]!);
-    return v1 && v2;
-  }
-
-  public static create(value: string, metaOrConfig?: ValueObjectConfig): Cpf {
-    const result = Cpf.tryCreate(value, metaOrConfig);
+  public static create(value: string, config?: CpfConfig): Cpf {
+    const result = Cpf.tryCreate(value, config);
     result.validator.throwsIfFailed();
     return result.instance;
   }
 
   public static tryCreate(
     value: string | null | undefined,
-    config: OptionalConfig<ValueObjectConfig>,
+    config: OptionalConfig<CpfConfig>,
   ): Result<Cpf | null>;
-  public static tryCreate(
-    value: string,
-    metaOrConfig?: Metadata | ValueObjectConfig,
-  ): Result<Cpf>;
+  public static tryCreate(value: string, config?: CpfConfig): Result<Cpf>;
   public static tryCreate(
     value: string | null | undefined,
-    metaOrConfig?: ValueObjectConfig,
+    config?: CpfConfig,
   ): Result<Cpf | null> {
-    if (metaOrConfig?.optional && isEmptyValue(value)) {
+    if (config?.optional && isEmptyValue(value)) {
       return Result.ok<Cpf | null>(null);
     }
-    try {
-      const numbers = Cpf.onlyNumbers(value ?? '');
 
-      if (!Cpf.isValid(numbers)) {
-        throw new ValidationError({ code: Cpf.INVALID_CPF });
+    try {
+      if (typeof value !== 'string') {
+        throw new ValidationError({ code: Cpf.INVALID_FORMAT });
       }
 
-      return Result.ok(new Cpf(Cpf.format(numbers), resolveVoConfig(metaOrConfig)));
+      const text = value.trim();
+      if (!Cpf.ACCEPTED_CHARS.test(text)) {
+        throw new ValidationError({ code: Cpf.INVALID_FORMAT });
+      }
+
+      const digits = text.replace(Cpf.NON_DIGIT, '');
+      if (digits.length !== Cpf.DIGIT_COUNT) {
+        throw new ValidationError({ code: Cpf.INVALID_LENGTH });
+      }
+
+      if (new Set(digits).size === 1) {
+        throw new ValidationError({ code: Cpf.REPEATED_SEQUENCE });
+      }
+
+      if (config?.checkDigit !== false) {
+        const first = Cpf.calculateCheckDigit(digits, 9);
+        const second = Cpf.calculateCheckDigit(digits, 10);
+        if (
+          first !== Number(digits.charAt(9)) ||
+          second !== Number(digits.charAt(10))
+        ) {
+          throw new ValidationError({ code: Cpf.INVALID_CHECK_DIGIT });
+        }
+      }
+
+      return Result.ok(new Cpf(digits, config));
     } catch (error: any) {
       return Result.fail(error.message);
     }
   }
 
-  static format(v: string) {
-    const numbers = Cpf.onlyNumbers(v).split('');
-    return numbers.reduce((cpf, num) => {
-      const dot = [3, 7].includes(cpf.length) ? '.' : '';
-      const dash = [11].includes(cpf.length) ? '-' : '';
-      return `${cpf}${dot}${dash}${num}`;
-    }, '');
-  }
-
-  private static onlyNumbers(cpf: string): string {
-    return cpf
-      .split('')
-      .filter((v) => '0123456789'.includes(v))
-      .filter((_, i) => i < 11)
-      .join('');
-  }
-
-  private static validateCheckDigit(digits: string[], providedDigit: string) {
-    const total = digits.reduce((sum, digit, index) => {
-      const factor = digits.length + 1 - index;
-      return sum + +digit * factor;
-    }, 0);
-
-    const remainder = total % 11;
-    const calculatedDigit = remainder < 2 ? 0 : 11 - remainder;
-    return calculatedDigit === +providedDigit;
+  private static calculateCheckDigit(digits: string, length: number): number {
+    let sum = 0;
+    for (let i = 0; i < length; i++) {
+      sum += Number(digits.charAt(i)) * (length + 1 - i);
+    }
+    const rest = (sum * 10) % Cpf.MOD_11_BASE;
+    return rest === 10 ? 0 : rest;
   }
 }

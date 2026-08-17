@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Url extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_URL = 'url.invalid';
+  private static readonly INVALID_URL = 'URL_INVALID';
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

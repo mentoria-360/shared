@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class StrongPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly TOO_WEAK = 'strong-password.too-weak';
+  private static readonly TOO_WEAK = 'STRONG_PASSWORD_TOO_WEAK';
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

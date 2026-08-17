@@ -12,7 +12,7 @@ import { ValidationError } from '../base/validation-error';
 export type DateOnlyInput = string | Date;
 
 export class DateOnly extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_DATE_ONLY = 'date-only.invalid';
+  private static readonly INVALID_DATE_ONLY = 'DATE_ONLY_INVALID';
   static readonly DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 
   constructor(value: string, config?: ValueObjectConfig) {

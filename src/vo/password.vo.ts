@@ -10,13 +10,16 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class Password extends ValueObject<string, ValueObjectConfig> {
-  private static readonly EMPTY_PASSWORD = 'password.empty';
+  private static readonly EMPTY_PASSWORD = 'PASSWORD_EMPTY';
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);
   }
 
-  public static create(value?: string, metaOrConfig?: ValueObjectConfig): Password {
+  public static create(
+    value?: string,
+    metaOrConfig?: ValueObjectConfig,
+  ): Password {
     const result = Password.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;

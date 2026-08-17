@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class PositiveInteger extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_POSITIVE_INTEGER = 'positive-integer.invalid';
+  private static readonly INVALID_POSITIVE_INTEGER = 'POSITIVE_INTEGER_INVALID';
 
   constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);

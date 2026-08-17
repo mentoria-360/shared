@@ -9,7 +9,7 @@ import {
 import { Metadata } from '../base/metadata';
 
 export class HashPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_HASH_PASSWORD = 'hash-password.invalid';
+  private static readonly INVALID_HASH_PASSWORD = 'HASH_PASSWORD_INVALID';
   private static readonly INVALID_HASH_PASSWORD_ALIAS = 'INVALID_HASH_PASSWORD';
   static readonly HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 

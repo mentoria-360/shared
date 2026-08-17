@@ -11,7 +11,7 @@ import { ValidationError } from '../base/validation-error';
 import { v4 as uuidv4 } from 'uuid';
 
 export class Id extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_ID = 'id.invalid';
+  private static readonly INVALID_ID = 'ID_INVALID';
   static readonly UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

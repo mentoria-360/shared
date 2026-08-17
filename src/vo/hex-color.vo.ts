@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class HexColor extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_HEX_COLOR = 'hex-color.invalid';
+  private static readonly INVALID_HEX_COLOR = 'HEX_COLOR_INVALID';
   static readonly HEX_REGEX =
     /^#(?:[0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/;
 
@@ -26,7 +26,10 @@ export class HexColor extends ValueObject<string, ValueObjectConfig> {
     return HexColor.HEX_REGEX.test(value.trim().toUpperCase());
   }
 
-  public static create(value: string, metaOrConfig?: ValueObjectConfig): HexColor {
+  public static create(
+    value: string,
+    metaOrConfig?: ValueObjectConfig,
+  ): HexColor {
     const result = HexColor.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
     return result.instance;

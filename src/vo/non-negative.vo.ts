@@ -10,7 +10,7 @@ import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
 export class NonNegative extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_NON_NEGATIVE = 'non-negative.invalid';
+  private static readonly INVALID_NON_NEGATIVE = 'NON_NEGATIVE_INVALID';
 
   constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);
@@ -41,11 +41,7 @@ export class NonNegative extends ValueObject<number, ValueObjectConfig> {
       return Result.ok<NonNegative | null>(null);
     }
     try {
-      if (
-        typeof value !== 'number' ||
-        !Number.isFinite(value) ||
-        value < 0
-      ) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
         throw new ValidationError({ code: NonNegative.INVALID_NON_NEGATIVE });
       }
 

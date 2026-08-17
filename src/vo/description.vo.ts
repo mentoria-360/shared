@@ -7,8 +7,8 @@ export class Description extends Text {
   protected static override readonly rules: TextValidationRules = {
     minLength: 20,
     maxLength: 2000,
-    tooShortCode: 'description.too-short',
-    tooLongCode: 'description.too-long',
+    tooShortCode: 'DESCRIPTION_TOO_SHORT',
+    tooLongCode: 'DESCRIPTION_TOO_LONG',
   };
 
   constructor(value: string, config?: TextConfig) {

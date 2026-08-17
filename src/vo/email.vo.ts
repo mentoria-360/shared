@@ -9,7 +9,7 @@ import {
 import { Metadata } from '../base/metadata';
 
 export class Email extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_EMAIL = 'email.invalid';
+  private static readonly INVALID_EMAIL = 'EMAIL_INVALID';
   private static readonly INVALID_EMAIL_ALIAS = 'INVALID_EMAIL';
   static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

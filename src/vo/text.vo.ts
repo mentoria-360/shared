@@ -25,8 +25,8 @@ export class Text extends ValueObject<string, TextConfig> {
   protected static readonly rules: TextValidationRules = {
     minLength: 1,
     maxLength: Number.MAX_SAFE_INTEGER,
-    tooShortCode: 'text.too-short',
-    tooLongCode: 'text.too-long',
+    tooShortCode: 'TEXT_TOO_SHORT',
+    tooLongCode: 'TEXT_TOO_LONG',
   };
 
   constructor(value: string, config?: TextConfig) {
