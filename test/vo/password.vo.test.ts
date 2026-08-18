@@ -8,9 +8,9 @@ describe('Password', () => {
   });
 
   test('should throw when password is empty', () => {
-    expect(() => Password.create(undefined as any)).toThrow('password.empty');
-    expect(() => Password.create('')).toThrow('password.empty');
-    expect(() => Password.create('     ')).toThrow('password.empty');
+    expect(() => Password.create(undefined as any)).toThrow('PASSWORD_EMPTY');
+    expect(() => Password.create('')).toThrow('PASSWORD_EMPTY');
+    expect(() => Password.create('     ')).toThrow('PASSWORD_EMPTY');
   });
 
   test('should tryCreate valid password', () => {
@@ -21,7 +21,7 @@ describe('Password', () => {
   test('should tryCreate invalid password', () => {
     const password = Password.tryCreate('    ');
     expect(password.isOk).toBe(false);
-    expect(password.errors[0]).toBe('password.empty');
+    expect(password.errors[0]).toBe('PASSWORD_EMPTY');
   });
 
   test('should create valid password via create', () => {

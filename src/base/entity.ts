@@ -24,9 +24,7 @@ export abstract class Entity<Type, Props extends EntityProps> {
   readonly id: string;
 
   protected constructor(public readonly props: Props) {
-    const idResult = Id.tryCreate(props.id);
-    idResult.validator.throwsIfFailed();
-    const id = idResult.instance.value;
+    const id = Id.create(props.id!, { meta: { attribute: 'id' } }).value;
     this.id = id;
     this.props = {
       ...props,
@@ -69,22 +67,7 @@ export abstract class Entity<Type, Props extends EntityProps> {
 
   public cloneWith(overrides: Partial<Props>): Result<Type> {
     const { props } = this.cloneProps(overrides);
-    const constructorRef = this.constructor as any;
-    const tryCreate = constructorRef.tryCreate;
-
-    if (typeof tryCreate === 'function') {
-      return tryCreate.call(constructorRef, props);
-    }
-
-    try {
-      return Result.ok(new constructorRef(props));
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        return Result.fail(error.message);
-      }
-
-      return Result.fail('ENTITY_CLONE_ERROR');
-    }
+    return (this.constructor as any).tryCreate(props);
   }
 
   public clone(overrides: Partial<Props>): Result<Type> {
@@ -98,7 +81,10 @@ export abstract class Entity<Type, Props extends EntityProps> {
   private diffProps(previous: Props, current: Props): EntityDiff<Props> {
     const diff: EntityDiff<Props> = {};
 
-    for (const key of new Set([...Object.keys(previous), ...Object.keys(current)]) as Set<keyof Props>) {
+    for (const key of new Set([
+      ...Object.keys(previous),
+      ...Object.keys(current),
+    ]) as Set<keyof Props>) {
       if (!this.isEqual(previous[key], current[key])) {
         diff[key] = {
           previous: previous[key],
@@ -116,7 +102,11 @@ export abstract class Entity<Type, Props extends EntityProps> {
     }
 
     for (const key of Object.keys(source)) {
-      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
+
+      if (this.isPlainObject(source[key])) {
         if (!target[key]) target[key] = {};
         this.deepMerge(target[key], source[key]);
       } else {
@@ -124,6 +114,15 @@ export abstract class Entity<Type, Props extends EntityProps> {
       }
     }
     return target;
+  }
+
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Object.getPrototypeOf(value) === Object.prototype
+    );
   }
 
   private isEqual(left: any, right: any): boolean {
@@ -135,9 +134,18 @@ export abstract class Entity<Type, Props extends EntityProps> {
       return left.getTime() === right.getTime();
     }
 
-    if (left && right && typeof left === 'object' && typeof right === 'object') {
+    if (
+      left &&
+      right &&
+      typeof left === 'object' &&
+      typeof right === 'object'
+    ) {
       if (Array.isArray(left) || Array.isArray(right)) {
-        if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+        if (
+          !Array.isArray(left) ||
+          !Array.isArray(right) ||
+          left.length !== right.length
+        ) {
           return false;
         }
 

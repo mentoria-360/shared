@@ -55,7 +55,7 @@ describe('Duration', () => {
   });
 
   test('should throw when duration is negative', () => {
-    expect(() => Duration.inSeconds(-10)).toThrow('duration.negative');
+    expect(() => Duration.inSeconds(-10)).toThrow('DURATION_NEGATIVE');
   });
 
   test('should expose hours and minutes parts', () => {
@@ -71,7 +71,7 @@ describe('Duration', () => {
   test('should tryCreate invalid duration', () => {
     const duration = Duration.tryCreate(-10000);
     expect(duration.isOk).toBe(false);
-    expect(duration.errors[0]).toBe('duration.negative');
+    expect(duration.errors[0]).toBe('DURATION_NEGATIVE');
   });
 
   test('should create valid duration via create', () => {

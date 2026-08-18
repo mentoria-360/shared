@@ -40,21 +40,21 @@ describe('DateOnly', () => {
     const result = DateOnly.tryCreate('2026-02-30');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('date-only.invalid');
+    expect(result.errors).toContain('DATE_ONLY_INVALID');
   });
 
   test('should fail when receives an invalid date instance', () => {
     const result = DateOnly.tryCreate(new Date('invalid'));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('date-only.invalid');
+    expect(result.errors).toContain('DATE_ONLY_INVALID');
   });
 
   test('should fail when value is empty', () => {
     const result = DateOnly.tryCreate('   ');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('date-only.invalid');
+    expect(result.errors).toContain('DATE_ONLY_INVALID');
   });
 
   test('should fallback to default error when thrown value has no message', () => {
@@ -73,6 +73,6 @@ describe('DateOnly', () => {
   });
 
   test('should throw when create receives invalid value', () => {
-    expect(() => DateOnly.create('invalid-date')).toThrow('date-only.invalid');
+    expect(() => DateOnly.create('invalid-date')).toThrow('DATE_ONLY_INVALID');
   });
 });

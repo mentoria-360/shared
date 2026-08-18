@@ -21,7 +21,7 @@ describe('NonNegative', () => {
   test('should tryCreate invalid value', () => {
     const nonNegative = NonNegative.tryCreate(-10);
     expect(nonNegative.isOk).toBe(false);
-    expect(nonNegative.errors[0]).toBe('non-negative.invalid');
+    expect(nonNegative.errors[0]).toBe('NON_NEGATIVE_INVALID');
   });
 
   test('should create valid value via create', () => {
@@ -38,8 +38,8 @@ describe('NonNegative', () => {
     const infinity = NonNegative.tryCreate(Number.POSITIVE_INFINITY);
 
     expect(nan.isFailure).toBe(true);
-    expect(nan.errors).toContain('non-negative.invalid');
+    expect(nan.errors).toContain('NON_NEGATIVE_INVALID');
     expect(infinity.isFailure).toBe(true);
-    expect(infinity.errors).toContain('non-negative.invalid');
+    expect(infinity.errors).toContain('NON_NEGATIVE_INVALID');
   });
 });

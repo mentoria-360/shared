@@ -16,7 +16,7 @@ describe('Id', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.errors).toBeDefined();
-    expect(result.errors[0]).toBe('id.invalid');
+    expect(result.errors[0]).toBe('ID_INVALID');
   });
 
   test('should create a new id if no value is provided', () => {
@@ -59,7 +59,7 @@ describe('Id', () => {
     const result = Id.required('');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('id.invalid');
+    expect(result.errors).toContain('ID_INVALID');
   });
 
   test('should return result when required id is valid', () => {
@@ -74,6 +74,6 @@ describe('Id', () => {
     const result = Id.required('invalid-id');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('id.invalid');
+    expect(result.errors).toContain('ID_INVALID');
   });
 });

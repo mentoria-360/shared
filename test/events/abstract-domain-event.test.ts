@@ -72,7 +72,7 @@ describe('AbstractDomainEvent', () => {
     });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['id.invalid']);
+    expect(result.errors).toEqual(['ID_INVALID']);
   });
 
   test('tryCreate should return Result.fail for invalid type', () => {

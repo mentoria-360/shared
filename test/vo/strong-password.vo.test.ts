@@ -18,46 +18,46 @@ describe('StrongPassword', () => {
     const result = StrongPassword.tryCreate('Aa1!');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('strong-password.too-weak');
+    expect(result.errors).toContain('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should fail when password has no uppercase letter', () => {
     const result = StrongPassword.tryCreate('aa123456!');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('strong-password.too-weak');
+    expect(result.errors).toContain('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should fail when password has no lowercase letter', () => {
     const result = StrongPassword.tryCreate('AA123456!');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('strong-password.too-weak');
+    expect(result.errors).toContain('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should fail when password has no number', () => {
     const result = StrongPassword.tryCreate('AaBbCcDd!');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('strong-password.too-weak');
+    expect(result.errors).toContain('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should fail when password has no special character', () => {
     const result = StrongPassword.tryCreate('Aa123456');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('strong-password.too-weak');
+    expect(result.errors).toContain('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should throw when create receives weak password', () => {
     expect(() => StrongPassword.create('weak')).toThrow();
-    expect(() => StrongPassword.create('1234567890')).toThrow('strong-password.too-weak');
-    expect(() => StrongPassword.create(undefined as unknown as string)).toThrow('strong-password.too-weak');
+    expect(() => StrongPassword.create('1234567890')).toThrow('STRONG_PASSWORD_TOO_WEAK');
+    expect(() => StrongPassword.create(undefined as unknown as string)).toThrow('STRONG_PASSWORD_TOO_WEAK');
   });
 
   test('should map invalid tryCreate error code', () => {
     const result = StrongPassword.tryCreate('1234567890');
     expect(result.isFailure).toBe(true);
-    expect(result.errors[0]).toBe('strong-password.too-weak');
+    expect(result.errors[0]).toBe('STRONG_PASSWORD_TOO_WEAK');
   });
 });

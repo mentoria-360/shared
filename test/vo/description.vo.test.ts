@@ -19,14 +19,14 @@ describe('Description', () => {
     const result = Description.tryCreate('a'.repeat(19));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('description.too-short');
+    expect(result.errors).toContain('DESCRIPTION_TOO_SHORT');
   });
 
   test('should fail when description is longer than maximum length', () => {
     const result = Description.tryCreate('a'.repeat(2001));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('description.too-long');
+    expect(result.errors).toContain('DESCRIPTION_TOO_LONG');
   });
 
   test('should ignore max validation when maxLength is 0', () => {
@@ -40,7 +40,7 @@ describe('Description', () => {
     const result = Description.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('description.too-short');
+    expect(result.errors).toContain('DESCRIPTION_TOO_SHORT');
   });
 
   test('should create with create method', () => {

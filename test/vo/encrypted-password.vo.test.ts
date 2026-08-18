@@ -31,6 +31,6 @@ describe('EncryptedPassword', () => {
   test('should tryCreate invalid hash', () => {
     const result = EncryptedPassword.tryCreate(INVALID_HASH);
     expect(result.isOk).toBe(false);
-    expect(result.errors[0]).toBe('encrypted-password.invalid');
+    expect(result.errors[0]).toBe('ENCRYPTED_PASSWORD_INVALID');
   });
 });

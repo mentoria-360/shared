@@ -1,6 +1,6 @@
 import { Url } from '../../src';
 
-const invalidCode = 'url.invalid';
+const invalidCode = 'URL_INVALID';
 
 describe('Url', () => {
   test('should create valid url with tryCreate', () => {
@@ -48,14 +48,14 @@ describe('Url', () => {
     const result = Url.tryCreate('invalid-url');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('url.invalid');
+    expect(result.errors).toContain('URL_INVALID');
   });
 
   test('should fail when value is not a string', () => {
     const result = Url.tryCreate(null as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('url.invalid');
+    expect(result.errors).toContain('URL_INVALID');
   });
 
   test('should map invalid tryCreate error code', () => {

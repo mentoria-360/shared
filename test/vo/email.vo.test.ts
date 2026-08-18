@@ -29,16 +29,16 @@ describe('Email', () => {
   });
 
   test('should throw when creating invalid email', () => {
-    expect(() => Email.create(undefined as any)).toThrow('email.invalid');
-    expect(() => Email.create('')).toThrow('email.invalid');
-    expect(() => Email.create('fulano')).toThrow('email.invalid');
-    expect(() => Email.create('fulano@zmail')).toThrow('email.invalid');
+    expect(() => Email.create(undefined as any)).toThrow('EMAIL_INVALID');
+    expect(() => Email.create('')).toThrow('EMAIL_INVALID');
+    expect(() => Email.create('fulano')).toThrow('EMAIL_INVALID');
+    expect(() => Email.create('fulano@zmail')).toThrow('EMAIL_INVALID');
   });
 
   test('should map invalid tryCreate error code', () => {
     const result = Email.tryCreate('invalid-email@');
     expect(result.isFailure).toBe(true);
-    expect(result.errors[0]).toBe('email.invalid');
+    expect(result.errors[0]).toBe('EMAIL_INVALID');
     expect(result.errors).toContain('INVALID_EMAIL');
   });
 
@@ -64,7 +64,7 @@ describe('Email', () => {
     const result = Email.tryCreate('invalid-email');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('email.invalid');
+    expect(result.errors).toContain('EMAIL_INVALID');
   });
 
   test('should throw when using create with invalid email', () => {

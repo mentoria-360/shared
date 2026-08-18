@@ -19,14 +19,14 @@ describe('Text', () => {
     const result = Text.tryCreate('ab', { minLength: 3 });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('text.too-short');
+    expect(result.errors).toContain('TEXT_TOO_SHORT');
   });
 
   test('should fail when text is longer than maxLength', () => {
     const result = Text.tryCreate('abcd', { maxLength: 3 });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('text.too-long');
+    expect(result.errors).toContain('TEXT_TOO_LONG');
   });
 
   test('should ignore max validation when maxLength is 0', () => {
@@ -40,7 +40,7 @@ describe('Text', () => {
     const result = Text.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('text.too-short');
+    expect(result.errors).toContain('TEXT_TOO_SHORT');
   });
 
   test('should create with create method', () => {

@@ -82,14 +82,14 @@ describe('Alias', () => {
     const result = Alias.tryCreate(123 as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias has space in the middle', () => {
     const result = Alias.tryCreate('abc 123');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias has leading or trailing spaces', () => {
@@ -97,23 +97,23 @@ describe('Alias', () => {
     const trailing = Alias.tryCreate('abc123 ');
 
     expect(leading.isFailure).toBe(true);
-    expect(leading.errors).toContain('alias.invalid');
+    expect(leading.errors).toContain('INVALID_ALIAS');
     expect(trailing.isFailure).toBe(true);
-    expect(trailing.errors).toContain('alias.invalid');
+    expect(trailing.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias has consecutive hyphens', () => {
     const result = Alias.tryCreate('abc--123');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias ends with hyphen', () => {
     const result = Alias.tryCreate('abc-123-');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should accept alias with only letters or only numbers', () => {
@@ -130,21 +130,21 @@ describe('Alias', () => {
     const result = Alias.tryCreate('abc_123');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias starts with hyphen', () => {
     const result = Alias.tryCreate('-abc123');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should fail when alias is composed only by hyphens', () => {
     const result = Alias.tryCreate('---');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('alias.invalid');
+    expect(result.errors).toContain('INVALID_ALIAS');
   });
 
   test('should throw when using create with invalid alias', () => {

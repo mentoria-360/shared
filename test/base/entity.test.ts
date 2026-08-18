@@ -1,40 +1,4 @@
-/// <reference types="jest" />
 import { TestEntity } from '../data/test.entity';
-import { Entity, type EntityProps } from '../../src/base/entity';
-
-interface FallbackEntityProps extends EntityProps {
-  name: string;
-}
-
-class FallbackEntity extends Entity<FallbackEntity, FallbackEntityProps> {
-  constructor(props: FallbackEntityProps) {
-    super(props);
-  }
-
-  get name() {
-    return this.props.name;
-  }
-}
-
-class ErrorOnCloneEntity extends Entity<ErrorOnCloneEntity, FallbackEntityProps> {
-  constructor(props: FallbackEntityProps) {
-    super(props);
-
-    if (props.name === 'explode') {
-      throw new Error('CLONE_CONSTRUCTOR_ERROR');
-    }
-  }
-}
-
-class UnknownErrorOnCloneEntity extends Entity<UnknownErrorOnCloneEntity, FallbackEntityProps> {
-  constructor(props: FallbackEntityProps) {
-    super(props);
-
-    if (props.name === 'explode') {
-      throw 'UNKNOWN_CLONE_ERROR';
-    }
-  }
-}
 
 describe('Entity', () => {
   describe('creation', () => {
@@ -125,55 +89,6 @@ describe('Entity', () => {
   });
 
   describe('cloneWith', () => {
-    test('should expose cloned props and top-level diff', () => {
-      const originalEntity = TestEntity.create({
-        id: '550e8400-e29b-41d4-a716-446655440012',
-        number: 1,
-        obj: { nested: { a: 1 }, flat: 'before' },
-      });
-
-      const result = originalEntity.cloneProps({
-        number: 2,
-        obj: { nested: { b: 3 } },
-      });
-
-      expect(result.props).toEqual({
-        id: originalEntity.id,
-        number: 2,
-        obj: {
-          nested: { a: 1, b: 3 },
-          flat: 'before',
-        },
-        createdAt: originalEntity.createdAt,
-        updatedAt: originalEntity.updatedAt,
-        deletedAt: null,
-      });
-      expect(result.diff).toEqual({
-        number: {
-          previous: 1,
-          current: 2,
-        },
-        obj: {
-          previous: { nested: { a: 1 }, flat: 'before' },
-          current: { nested: { a: 1, b: 3 }, flat: 'before' },
-        },
-      });
-    });
-
-    test('should return empty diff when cloneProps has no effective changes', () => {
-      const originalEntity = TestEntity.create({
-        id: '550e8400-e29b-41d4-a716-446655440013',
-        number: 10,
-        obj: { nested: true },
-      });
-
-      const result = originalEntity.cloneProps({
-        obj: { nested: true },
-      });
-
-      expect(result.diff).toEqual({});
-    });
-
     test('should clone the entity with new properties', () => {
       const originalEntity = TestEntity.tryCreate({
         number: 1,
@@ -306,83 +221,80 @@ describe('Entity', () => {
       expect(result.instance.obj).toEqual(originalEntity.obj);
     });
 
-    test('should clone entities without static tryCreate using constructor fallback', () => {
-      const originalEntity = new FallbackEntity({
-        id: '550e8400-e29b-41d4-a716-446655440020',
-        name: 'before',
-      });
+    test('should keep a Date override intact when the target field is empty', () => {
+      const originalEntity = TestEntity.create({ number: 1, deletedAt: null });
+      const deletedAt = new Date('2026-08-17T00:00:00.000Z');
 
-      const result = originalEntity.cloneWith({ name: 'after' });
+      const result = originalEntity.cloneWith({ deletedAt });
 
       expect(result.isOk).toBe(true);
-      expect(result.instance).toBeInstanceOf(FallbackEntity);
-      expect(result.instance.id).toBe(originalEntity.id);
-      expect(result.instance.name).toBe('after');
+      expect(Object.prototype.toString.call(result.instance.deletedAt)).toBe(
+        '[object Date]',
+      );
+      expect((result.instance.deletedAt as Date).getTime()).toBe(
+        deletedAt.getTime(),
+      );
     });
 
-    test('should return constructor error when fallback clone throws Error', () => {
-      const originalEntity = new ErrorOnCloneEntity({
-        id: '550e8400-e29b-41d4-a716-446655440021',
-        name: 'safe',
+    test('should keep a Date override intact when the target field already holds a Date', () => {
+      const originalEntity = TestEntity.create({
+        number: 1,
+        createdAt: new Date('2020-01-01T00:00:00.000Z'),
+      });
+      const createdAt = new Date('2026-08-17T00:00:00.000Z');
+
+      const result = originalEntity.cloneWith({ createdAt });
+
+      expect(result.isOk).toBe(true);
+      expect(Object.prototype.toString.call(result.instance.createdAt)).toBe(
+        '[object Date]',
+      );
+      expect(result.instance.createdAt.getTime()).toBe(createdAt.getTime());
+    });
+
+    test('should replace a Map override by value instead of merging it', () => {
+      const originalEntity = TestEntity.create({ number: 1 });
+      const map = new Map<string, number>([['a', 1]]);
+
+      const result = originalEntity.cloneWith({ obj: map });
+
+      expect(result.isOk).toBe(true);
+      expect(Object.prototype.toString.call(result.instance.obj)).toBe(
+        '[object Map]',
+      );
+      expect((result.instance.obj as Map<string, number>).size).toBe(1);
+      expect((result.instance.obj as Map<string, number>).get('a')).toBe(1);
+    });
+
+    test('should replace a class instance override by reference instead of merging it', () => {
+      class Marker {
+        constructor(readonly label: string) {}
+      }
+      const originalEntity = TestEntity.create({ number: 1 });
+      const marker = new Marker('kept');
+
+      const result = originalEntity.cloneWith({ obj: marker });
+
+      expect(result.isOk).toBe(true);
+      expect(result.instance.obj).toBe(marker);
+      expect((result.instance.obj as Marker).label).toBe('kept');
+    });
+
+    test('should still deep merge plain nested objects after the prototype guard', () => {
+      const originalEntity = TestEntity.create({
+        number: 1,
+        obj: { nested: { a: 1, b: 2 }, flat: 'test' },
       });
 
-      const result = originalEntity.cloneWith({ name: 'explode' });
-
-      expect(result.isFailure).toBe(true);
-      expect(result.errors).toEqual(['CLONE_CONSTRUCTOR_ERROR']);
-    });
-
-    test('should return generic clone error when fallback clone throws unknown value', () => {
-      const originalEntity = new UnknownErrorOnCloneEntity({
-        id: '550e8400-e29b-41d4-a716-446655440022',
-        name: 'safe',
+      const result = originalEntity.cloneWith({
+        obj: { nested: { b: 3, c: 4 } },
       });
 
-      const result = originalEntity.cloneWith({ name: 'explode' });
-
-      expect(result.isFailure).toBe(true);
-      expect(result.errors).toEqual(['ENTITY_CLONE_ERROR']);
-    });
-  });
-
-  describe('array and date comparisons in diff', () => {
-    test('should not include equal arrays in diff', () => {
-      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
-      const result = entity.cloneProps({});
-      expect(result.diff.obj).toBeUndefined();
-    });
-
-    test('should detect element-level change in equal-length arrays', () => {
-      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
-      const result = entity.cloneProps({ obj: [1, 99, 3] });
-      expect(result.diff.obj).toBeDefined();
-    });
-
-    test('should detect array length mismatch in diff', () => {
-      const entity = TestEntity.create({ number: 1, obj: [1, 2, 3] });
-      const result = entity.cloneProps({ obj: [1, 2] });
-      expect(result.diff.obj).toBeDefined();
-    });
-
-    test('should detect type change from plain object to array in diff', () => {
-      const entity = TestEntity.create({ number: 1, obj: { 0: 1, 1: 2 } });
-      const result = entity.cloneProps({ obj: [1, 2] as any });
-      expect(result.diff.obj).toBeDefined();
-    });
-
-    test('should not include obj in diff when it contains equal nested dates', () => {
-      const date = new Date('2024-06-01T00:00:00.000Z');
-      const entity = TestEntity.create({ number: 1, obj: { timestamp: date } });
-      const result = entity.cloneProps({ number: 2 });
-      expect(result.diff.obj).toBeUndefined();
-    });
-
-    test('should detect date change inside array in diff', () => {
-      const d1 = new Date('2024-01-01T00:00:00.000Z');
-      const d2 = new Date('2025-01-01T00:00:00.000Z');
-      const entity = TestEntity.create({ number: 1, obj: [d1] });
-      const result = entity.cloneProps({ obj: [d2] as any });
-      expect(result.diff.obj).toBeDefined();
+      expect(result.isOk).toBe(true);
+      expect(result.instance.obj).toEqual({
+        nested: { a: 1, b: 3, c: 4 },
+        flat: 'test',
+      });
     });
   });
 

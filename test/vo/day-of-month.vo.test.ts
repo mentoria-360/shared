@@ -22,35 +22,35 @@ describe('DayOfMonth', () => {
     const result = DayOfMonth.tryCreate(0);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('day-of-month.out-of-range');
+    expect(result.errors).toContain('DAY_OF_MONTH_OUT_OF_RANGE');
   });
 
   test('should fail when value is above allowed range', () => {
     const result = DayOfMonth.tryCreate(32);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('day-of-month.out-of-range');
+    expect(result.errors).toContain('DAY_OF_MONTH_OUT_OF_RANGE');
   });
 
   test('should fail when value is not an integer', () => {
     const result = DayOfMonth.tryCreate(10.5);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('day-of-month.invalid');
+    expect(result.errors).toContain('DAY_OF_MONTH_INVALID');
   });
 
   test('should fail when value is not finite', () => {
     const result = DayOfMonth.tryCreate(Number.NaN);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('day-of-month.invalid');
+    expect(result.errors).toContain('DAY_OF_MONTH_INVALID');
   });
 
   test('should fail when value is not a number', () => {
     const result = DayOfMonth.tryCreate('10' as unknown as number);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('day-of-month.invalid');
+    expect(result.errors).toContain('DAY_OF_MONTH_INVALID');
   });
 
   test('should create with create when value is valid', () => {
@@ -60,7 +60,7 @@ describe('DayOfMonth', () => {
   });
 
   test('should throw when create receives invalid day', () => {
-    expect(() => DayOfMonth.create(40)).toThrow('day-of-month.out-of-range');
+    expect(() => DayOfMonth.create(40)).toThrow('DAY_OF_MONTH_OUT_OF_RANGE');
   });
 
   test('should fallback to default error when an unknown error is thrown', () => {

@@ -19,21 +19,21 @@ describe('PersonName', () => {
     const result = PersonName.tryCreate('Jo');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('person-name.too-short');
+    expect(result.errors).toContain('PERSON_NAME_TOO_SHORT');
   });
 
   test('should fail when name is too long', () => {
     const result = PersonName.tryCreate('a'.repeat(51));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('person-name.too-long');
+    expect(result.errors).toContain('PERSON_NAME_TOO_LONG');
   });
 
   test('should fail when name has only one word', () => {
     const result = PersonName.tryCreate('Joao');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('person-name.surname-missing');
+    expect(result.errors).toContain('PERSON_NAME_SURNAME_MISSING');
   });
 
   test('should create with create method', () => {
@@ -64,6 +64,6 @@ describe('PersonName', () => {
   test('should map invalid tryCreate error code', () => {
     const result = PersonName.tryCreate('João');
     expect(result.isFailure).toBe(true);
-    expect(result.errors[0]).toBe('person-name.surname-missing');
+    expect(result.errors[0]).toBe('PERSON_NAME_SURNAME_MISSING');
   });
 });
