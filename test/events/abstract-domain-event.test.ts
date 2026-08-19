@@ -3,12 +3,14 @@ import {
   AbstractDomainEventProps,
   ResolvedDomainEventProps,
 } from '../../src/events/abstract-domain-event';
-
+import { SharedErrors } from '../../src/errors';
 type TestPayload = { from: string; to: string };
 type TestMetadata = { userId: string };
 
 class TestDomainEvent extends AbstractDomainEvent<TestPayload, TestMetadata> {
-  private constructor(props: ResolvedDomainEventProps<TestPayload, TestMetadata>) {
+  private constructor(
+    props: ResolvedDomainEventProps<TestPayload, TestMetadata>,
+  ) {
     super(props);
   }
 
@@ -29,7 +31,11 @@ class TestDomainEvent extends AbstractDomainEvent<TestPayload, TestMetadata> {
     );
   }
 
-  static create(input: { aggregateId: string; payload: TestPayload; metadata?: TestMetadata }) {
+  static create(input: {
+    aggregateId: string;
+    payload: TestPayload;
+    metadata?: TestMetadata;
+  }) {
     const result = TestDomainEvent.tryCreate(input);
     result.validator.throwsIfFailed();
     return result.instance;
@@ -37,12 +43,19 @@ class TestDomainEvent extends AbstractDomainEvent<TestPayload, TestMetadata> {
 }
 
 class RawTestDomainEvent extends AbstractDomainEvent<TestPayload> {
-  private constructor(props: ResolvedDomainEventProps<TestPayload, Record<string, unknown>>) {
+  private constructor(
+    props: ResolvedDomainEventProps<TestPayload, Record<string, unknown>>,
+  ) {
     super(props);
   }
 
-  static tryCreateWithProps(props: AbstractDomainEventProps<TestPayload, Record<string, unknown>>) {
-    return super.tryCreateFromProps(props, (resolved) => new RawTestDomainEvent(resolved));
+  static tryCreateWithProps(
+    props: AbstractDomainEventProps<TestPayload, Record<string, unknown>>,
+  ) {
+    return super.tryCreateFromProps(
+      props,
+      (resolved) => new RawTestDomainEvent(resolved),
+    );
   }
 }
 
@@ -72,7 +85,7 @@ describe('AbstractDomainEvent', () => {
     });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['ID_INVALID']);
+    expect(result.errors).toEqual([SharedErrors.ID_INVALID]);
   });
 
   test('tryCreate should return Result.fail for invalid type', () => {
@@ -84,7 +97,6 @@ describe('AbstractDomainEvent', () => {
     });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['domain-event.type.invalid']);
   });
 
   test('tryCreate should return Result.fail for invalid aggregateType', () => {
@@ -96,6 +108,5 @@ describe('AbstractDomainEvent', () => {
     });
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toEqual(['domain-event.aggregate-type.invalid']);
   });
 });

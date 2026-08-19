@@ -6,17 +6,21 @@ import {
   ValueObjectConfig,
 } from '../base';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export interface CpfConfig extends ValueObjectConfig {
   checkDigit?: boolean;
 }
 
 export class Cpf extends ValueObject<string, CpfConfig> {
-  public static readonly INVALID_FORMAT: string = 'CPF_INVALID_FORMAT';
-  public static readonly INVALID_LENGTH: string = 'CPF_INVALID_LENGTH';
-  public static readonly REPEATED_SEQUENCE: string = 'CPF_REPEATED_SEQUENCE';
+  public static readonly INVALID_FORMAT: string =
+    SharedErrors.CPF_INVALID_FORMAT;
+  public static readonly INVALID_LENGTH: string =
+    SharedErrors.CPF_INVALID_LENGTH;
+  public static readonly REPEATED_SEQUENCE: string =
+    SharedErrors.CPF_REPEATED_SEQUENCE;
   public static readonly INVALID_CHECK_DIGIT: string =
-    'CPF_INVALID_CHECK_DIGIT';
+    SharedErrors.CPF_INVALID_CHECK_DIGIT;
 
   private static readonly DIGIT_COUNT: number = 11;
   private static readonly MOD_11_BASE: number = 11;

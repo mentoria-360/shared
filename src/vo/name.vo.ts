@@ -8,12 +8,12 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export interface NameProps extends ValueObjectConfig {}
-
 export class Name extends ValueObject<string, NameProps> {
-  public static readonly TOO_SHORT: string = 'NAME_TOO_SHORT';
-  public static readonly TOO_LONG: string = 'NAME_TOO_LONG';
+  public static readonly TOO_SHORT: string = SharedErrors.NAME_TOO_SHORT;
+  public static readonly TOO_LONG: string = SharedErrors.NAME_TOO_LONG;
   public static readonly DEFAULT_MIN_LENGTH: number = 2;
   public static readonly DEFAULT_MAX_LENGTH: number = 100;
 
@@ -21,7 +21,10 @@ export class Name extends ValueObject<string, NameProps> {
     super(value, config);
   }
 
-  public static create<T extends Name = Name>(value: string, config?: NameProps): T {
+  public static create<T extends Name = Name>(
+    value: string,
+    config?: NameProps,
+  ): T {
     const result = this.tryCreate(value, config) as Result<T>;
     result.validator.throwsIfFailed();
     return result.instance;

@@ -239,17 +239,17 @@ describe('Entity', () => {
     test('should keep a Date override intact when the target field already holds a Date', () => {
       const originalEntity = TestEntity.create({
         number: 1,
-        createdAt: new Date('2020-01-01T00:00:00.000Z'),
+        when: new Date('2020-01-01T00:00:00.000Z'),
       });
-      const createdAt = new Date('2026-08-17T00:00:00.000Z');
+      const when = new Date('2026-08-17T00:00:00.000Z');
 
-      const result = originalEntity.cloneWith({ createdAt });
+      const result = originalEntity.cloneWith({ when });
 
       expect(result.isOk).toBe(true);
-      expect(Object.prototype.toString.call(result.instance.createdAt)).toBe(
+      expect(Object.prototype.toString.call(result.instance.when)).toBe(
         '[object Date]',
       );
-      expect(result.instance.createdAt.getTime()).toBe(createdAt.getTime());
+      expect((result.instance.when as Date).getTime()).toBe(when.getTime());
     });
 
     test('should replace a Map override by value instead of merging it', () => {
@@ -295,6 +295,42 @@ describe('Entity', () => {
         nested: { a: 1, b: 3, c: 4 },
         flat: 'test',
       });
+    });
+
+    test('should keep the stored value when the override is undefined', () => {
+      const entity = TestEntity.create({
+        number: 1,
+        when: new Date('2024-01-01'),
+      });
+
+      const result = entity.cloneWith({ number: 2, when: undefined });
+
+      expect(result.isOk).toBe(true);
+      expect(result.instance.number).toBe(2);
+      expect(result.instance.when).toEqual(new Date('2024-01-01'));
+    });
+
+    test('should erase the stored value when the override is null', () => {
+      const entity = TestEntity.create({
+        number: 1,
+        when: new Date('2024-01-01'),
+      });
+
+      const result = entity.cloneWith({ number: 1, when: null });
+
+      expect(result.isOk).toBe(true);
+      expect(result.instance.when).toBeNull();
+    });
+
+    test('should report no diff for a key overridden with undefined', () => {
+      const entity = TestEntity.create({
+        number: 1,
+        when: new Date('2024-01-01'),
+      });
+
+      const { diff } = entity.cloneProps({ number: 1, when: undefined });
+
+      expect(diff.when).toBeUndefined();
     });
   });
 

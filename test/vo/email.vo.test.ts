@@ -1,5 +1,5 @@
 import { Email } from '../../src';
-
+import { SharedErrors } from '../../src/errors';
 describe('Email', () => {
   test('should create with valid email', () => {
     const result = Email.tryCreate('test@example.com');
@@ -29,17 +29,21 @@ describe('Email', () => {
   });
 
   test('should throw when creating invalid email', () => {
-    expect(() => Email.create(undefined as any)).toThrow('EMAIL_INVALID');
-    expect(() => Email.create('')).toThrow('EMAIL_INVALID');
-    expect(() => Email.create('fulano')).toThrow('EMAIL_INVALID');
-    expect(() => Email.create('fulano@zmail')).toThrow('EMAIL_INVALID');
+    expect(() => Email.create(undefined as any)).toThrow(
+      SharedErrors.EMAIL_INVALID,
+    );
+    expect(() => Email.create('')).toThrow(SharedErrors.EMAIL_INVALID);
+    expect(() => Email.create('fulano')).toThrow(SharedErrors.EMAIL_INVALID);
+    expect(() => Email.create('fulano@zmail')).toThrow(
+      SharedErrors.EMAIL_INVALID,
+    );
   });
 
   test('should map invalid tryCreate error code', () => {
     const result = Email.tryCreate('invalid-email@');
     expect(result.isFailure).toBe(true);
-    expect(result.errors[0]).toBe('EMAIL_INVALID');
-    expect(result.errors).toContain('INVALID_EMAIL');
+    expect(result.errors[0]).toBe(SharedErrors.EMAIL_INVALID);
+    expect(result.errors).toContain(SharedErrors.EMAIL_INVALID);
   });
 
   test('should return empty local when split result is undefined', () => {
@@ -64,7 +68,7 @@ describe('Email', () => {
     const result = Email.tryCreate('invalid-email');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('EMAIL_INVALID');
+    expect(result.errors).toContain(SharedErrors.EMAIL_INVALID);
   });
 
   test('should throw when using create with invalid email', () => {

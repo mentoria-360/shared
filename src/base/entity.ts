@@ -106,6 +106,8 @@ export abstract class Entity<Type, Props extends EntityProps> {
         continue;
       }
 
+      if (source[key] === undefined) continue;
+
       if (this.isPlainObject(source[key])) {
         if (!target[key]) target[key] = {};
         this.deepMerge(target[key], source[key]);

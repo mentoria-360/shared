@@ -8,13 +8,15 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 interface PersonNameConfig extends ValueObjectConfig {}
 
 export class PersonName extends ValueObject<string, PersonNameConfig> {
-  private static readonly TOO_SHORT = 'PERSON_NAME_TOO_SHORT';
-  private static readonly TOO_LONG = 'PERSON_NAME_TOO_LONG';
-  private static readonly SURNAME_MISSING = 'PERSON_NAME_SURNAME_MISSING';
+  private static readonly TOO_SHORT = SharedErrors.PERSON_NAME_TOO_SHORT;
+  private static readonly TOO_LONG = SharedErrors.PERSON_NAME_TOO_LONG;
+  private static readonly SURNAME_MISSING =
+    SharedErrors.PERSON_NAME_SURNAME_MISSING;
   static readonly NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ'`´^~\- ]+$/;
 
   constructor(value: string, config?: PersonNameConfig) {

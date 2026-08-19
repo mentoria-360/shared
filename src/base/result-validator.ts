@@ -1,4 +1,5 @@
 import { ResultError } from './result-error';
+import { ResultErrors } from './../errors';
 
 export type ResultValidationError = string | string[] | Error;
 export type ResultExceptionFactory = (error: ResultValidationError) => unknown;
@@ -9,12 +10,15 @@ type ResultValidationSource<T> = {
   readonly errors?: string[];
 };
 
-export class ResultValidator<T, TSource extends ResultValidationSource<T> = ResultValidationSource<T>> {
+export class ResultValidator<
+  T,
+  TSource extends ResultValidationSource<T> = ResultValidationSource<T>,
+> {
   constructor(private readonly source: TSource) {}
 
   throwsIfTrue(
     this: ResultValidator<boolean, any>,
-    error: ResultValidationError = 'RESULT_EXPRESSION_TRUE',
+    error: ResultValidationError = ResultErrors.EXPRESSION_TRUE,
     exceptionFactory?: ResultExceptionFactory,
   ) {
     if (this.source.instance === true) {
@@ -26,7 +30,7 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
 
   throwsIfFalse(
     this: ResultValidator<boolean, any>,
-    error: ResultValidationError = 'RESULT_EXPRESSION_FALSE',
+    error: ResultValidationError = ResultErrors.EXPRESSION_FALSE,
     exceptionFactory?: ResultExceptionFactory,
   ) {
     if (this.source.instance === false) {
@@ -36,7 +40,10 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
     return this;
   }
 
-  throwsIfNull(error: ResultValidationError = 'RESULT_INSTANCE_NULL', exceptionFactory?: ResultExceptionFactory): this {
+  throwsIfNull(
+    error: ResultValidationError = ResultErrors.INSTANCE_NULL,
+    exceptionFactory?: ResultExceptionFactory,
+  ): this {
     if (this.source.instance == null) {
       this.throwError(error, exceptionFactory);
     }
@@ -45,7 +52,7 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
   }
 
   throwsIfNotNull(
-    error: ResultValidationError = 'RESULT_INSTANCE_NOT_NULL',
+    error: ResultValidationError = ResultErrors.INSTANCE_NOT_NULL,
     exceptionFactory?: ResultExceptionFactory,
   ): this {
     if (this.source.instance != null) {
@@ -56,10 +63,13 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
   }
 
   throwsIfEmpty(
-    error: ResultValidationError = 'RESULT_INSTANCE_EMPTY',
+    error: ResultValidationError = ResultErrors.INSTANCE_EMPTY,
     exceptionFactory?: ResultExceptionFactory,
   ): this {
-    if (this.source.instance instanceof Array && this.source.instance.length === 0) {
+    if (
+      this.source.instance instanceof Array &&
+      this.source.instance.length === 0
+    ) {
       this.throwError(error, exceptionFactory);
     }
 
@@ -67,10 +77,13 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
   }
 
   throwsIfNotEmpty(
-    error: ResultValidationError = 'RESULT_INSTANCE_NOT_EMPTY',
+    error: ResultValidationError = ResultErrors.INSTANCE_NOT_EMPTY,
     exceptionFactory?: ResultExceptionFactory,
   ): this {
-    if (this.source.instance instanceof Array && this.source.instance.length > 0) {
+    if (
+      this.source.instance instanceof Array &&
+      this.source.instance.length > 0
+    ) {
       this.throwError(error, exceptionFactory);
     }
 
@@ -78,7 +91,7 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
   }
 
   throwsIfFailed(
-    error: ResultValidationError = this.source.errors ?? 'RESULT_FAILED',
+    error: ResultValidationError = this.source.errors ?? ResultErrors.FAILED,
     exceptionFactory?: ResultExceptionFactory,
   ): this {
     if (this.source.isFailure) {
@@ -92,7 +105,10 @@ export class ResultValidator<T, TSource extends ResultValidationSource<T> = Resu
     return this.source;
   }
 
-  private throwError(error: ResultValidationError, exceptionFactory?: ResultExceptionFactory): never {
+  private throwError(
+    error: ResultValidationError,
+    exceptionFactory?: ResultExceptionFactory,
+  ): never {
     if (exceptionFactory) {
       throw exceptionFactory(error);
     }

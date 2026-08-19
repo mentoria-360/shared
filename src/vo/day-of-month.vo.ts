@@ -8,10 +8,12 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export class DayOfMonth extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_DAY_OF_MONTH = 'DAY_OF_MONTH_INVALID';
-  private static readonly OUT_OF_RANGE = 'DAY_OF_MONTH_OUT_OF_RANGE';
+  private static readonly INVALID_DAY_OF_MONTH =
+    SharedErrors.DAY_OF_MONTH_INVALID;
+  private static readonly OUT_OF_RANGE = SharedErrors.DAY_OF_MONTH_OUT_OF_RANGE;
 
   constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);

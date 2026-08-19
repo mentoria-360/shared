@@ -7,10 +7,9 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
-
+import { SharedErrors } from '../errors';
 export class Email extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_EMAIL = 'EMAIL_INVALID';
-  private static readonly INVALID_EMAIL_ALIAS = 'INVALID_EMAIL';
+  private static readonly INVALID_EMAIL = SharedErrors.EMAIL_INVALID;
   static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   constructor(value: string, config?: ValueObjectConfig) {
@@ -58,7 +57,7 @@ export class Email extends ValueObject<string, ValueObjectConfig> {
       const email = value?.trim().toLowerCase();
 
       if (!Email.EMAIL_REGEX.test(email ?? '')) {
-        return Result.fail([Email.INVALID_EMAIL, Email.INVALID_EMAIL_ALIAS]);
+        return Result.fail([Email.INVALID_EMAIL, Email.INVALID_EMAIL]);
       }
 
       return Result.ok(new Email(email ?? '', resolveVoConfig(metaOrConfig)));

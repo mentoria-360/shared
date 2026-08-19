@@ -8,9 +8,9 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class StrongPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly TOO_WEAK = 'STRONG_PASSWORD_TOO_WEAK';
+  private static readonly TOO_WEAK = SharedErrors.STRONG_PASSWORD_TOO_WEAK;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

@@ -8,11 +8,12 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export type DateOnlyInput = string | Date;
 
 export class DateOnly extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_DATE_ONLY = 'DATE_ONLY_INVALID';
+  private static readonly INVALID_DATE_ONLY = SharedErrors.DATE_ONLY_INVALID;
   static readonly DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 
   constructor(value: string, config?: ValueObjectConfig) {

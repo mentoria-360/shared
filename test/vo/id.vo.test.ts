@@ -1,6 +1,6 @@
 import { Id } from '../../src';
 import { validate as isUuid } from 'uuid';
-
+import { SharedErrors } from '../../src/errors';
 describe('Id', () => {
   test('should create with valid provided id', () => {
     const validId = '550e8400-e29b-41d4-a716-446655440000';
@@ -16,7 +16,7 @@ describe('Id', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.errors).toBeDefined();
-    expect(result.errors[0]).toBe('ID_INVALID');
+    expect(result.errors[0]).toBe(SharedErrors.ID_INVALID);
   });
 
   test('should create a new id if no value is provided', () => {
@@ -59,7 +59,7 @@ describe('Id', () => {
     const result = Id.required('');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('ID_INVALID');
+    expect(result.errors).toContain(SharedErrors.ID_INVALID);
   });
 
   test('should return result when required id is valid', () => {
@@ -74,6 +74,6 @@ describe('Id', () => {
     const result = Id.required('invalid-id');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('ID_INVALID');
+    expect(result.errors).toContain(SharedErrors.ID_INVALID);
   });
 });

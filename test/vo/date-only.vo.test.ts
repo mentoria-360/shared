@@ -1,5 +1,5 @@
 import { DateOnly } from '../../src';
-
+import { SharedErrors } from '../../src/errors';
 describe('DateOnly', () => {
   test('should create valid date-only with create', () => {
     const value = DateOnly.create('2026-03-16');
@@ -33,28 +33,30 @@ describe('DateOnly', () => {
 
     expect(result.isOk).toBe(true);
     expect(result.instance.value).toBe('2026-03-16');
-    expect(result.instance.asDate.toISOString()).toBe('2026-03-16T00:00:00.000Z');
+    expect(result.instance.asDate.toISOString()).toBe(
+      '2026-03-16T00:00:00.000Z',
+    );
   });
 
   test('should fail when date is invalid', () => {
     const result = DateOnly.tryCreate('2026-02-30');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('DATE_ONLY_INVALID');
+    expect(result.errors).toContain(SharedErrors.DATE_ONLY_INVALID);
   });
 
   test('should fail when receives an invalid date instance', () => {
     const result = DateOnly.tryCreate(new Date('invalid'));
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('DATE_ONLY_INVALID');
+    expect(result.errors).toContain(SharedErrors.DATE_ONLY_INVALID);
   });
 
   test('should fail when value is empty', () => {
     const result = DateOnly.tryCreate('   ');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('DATE_ONLY_INVALID');
+    expect(result.errors).toContain(SharedErrors.DATE_ONLY_INVALID);
   });
 
   test('should fallback to default error when thrown value has no message', () => {
@@ -73,6 +75,8 @@ describe('DateOnly', () => {
   });
 
   test('should throw when create receives invalid value', () => {
-    expect(() => DateOnly.create('invalid-date')).toThrow('DATE_ONLY_INVALID');
+    expect(() => DateOnly.create('invalid-date')).toThrow(
+      SharedErrors.DATE_ONLY_INVALID,
+    );
   });
 });

@@ -8,9 +8,9 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class Password extends ValueObject<string, ValueObjectConfig> {
-  private static readonly EMPTY_PASSWORD = 'PASSWORD_EMPTY';
+  private static readonly EMPTY_PASSWORD = SharedErrors.PASSWORD_EMPTY;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

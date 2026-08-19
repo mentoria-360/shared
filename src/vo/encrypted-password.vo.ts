@@ -9,10 +9,11 @@ import {
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 import { HashPassword } from './hash-password.vo';
+import { SharedErrors } from '../errors';
 
 export class EncryptedPassword extends ValueObject<string, ValueObjectConfig> {
   private static readonly INVALID_ENCRYPTED_PASSWORD =
-    'ENCRYPTED_PASSWORD_INVALID';
+    SharedErrors.ENCRYPTED_PASSWORD_INVALID;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

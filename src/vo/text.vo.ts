@@ -8,7 +8,7 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export interface TextConfig extends ValueObjectConfig {
   minLength?: number;
   maxLength?: number;
@@ -25,8 +25,8 @@ export class Text extends ValueObject<string, TextConfig> {
   protected static readonly rules: TextValidationRules = {
     minLength: 1,
     maxLength: Number.MAX_SAFE_INTEGER,
-    tooShortCode: 'TEXT_TOO_SHORT',
-    tooLongCode: 'TEXT_TOO_LONG',
+    tooShortCode: SharedErrors.TEXT_TOO_SHORT,
+    tooLongCode: SharedErrors.TEXT_TOO_LONG,
   };
 
   constructor(value: string, config?: TextConfig) {

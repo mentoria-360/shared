@@ -7,10 +7,11 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
+import { SharedErrors } from '../errors';
 
 export class HashPassword extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_HASH_PASSWORD = 'HASH_PASSWORD_INVALID';
-  private static readonly INVALID_HASH_PASSWORD_ALIAS = 'INVALID_HASH_PASSWORD';
+  private static readonly INVALID_HASH_PASSWORD =
+    SharedErrors.HASH_PASSWORD_INVALID;
   static readonly HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 
   constructor(value: string, config?: ValueObjectConfig) {
@@ -50,10 +51,7 @@ export class HashPassword extends ValueObject<string, ValueObjectConfig> {
       const hash = value?.trim() ?? '';
 
       if (!HashPassword.HASH_REGEX.test(hash)) {
-        return Result.fail([
-          HashPassword.INVALID_HASH_PASSWORD,
-          HashPassword.INVALID_HASH_PASSWORD_ALIAS,
-        ]);
+        return Result.fail([HashPassword.INVALID_HASH_PASSWORD]);
       }
 
       return Result.ok(new HashPassword(hash, resolveVoConfig(metaOrConfig)));

@@ -6,10 +6,12 @@ import {
   ValueObjectConfig,
 } from '../base';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class Phone extends ValueObject<string, ValueObjectConfig> {
-  public static readonly INVALID_FORMAT: string = 'PHONE_INVALID_FORMAT';
-  public static readonly INVALID_LENGTH: string = 'PHONE_INVALID_LENGTH';
+  public static readonly INVALID_FORMAT: string =
+    SharedErrors.PHONE_INVALID_FORMAT;
+  public static readonly INVALID_LENGTH: string =
+    SharedErrors.PHONE_INVALID_LENGTH;
 
   private static readonly MIN_DIGITS = 8;
   private static readonly MAX_DIGITS = 15;

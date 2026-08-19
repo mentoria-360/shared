@@ -1,3 +1,4 @@
+import { ResultErrors } from '../errors';
 import { ResultValidator } from './result-validator';
 import { ValidationError } from './validation-error';
 
@@ -39,7 +40,9 @@ export class Result<T> {
   static async tryAsync<T>(fn: () => Promise<Result<T>>): Promise<Result<T>>;
   static async tryAsync<T>(fn: () => Promise<T>): Promise<Result<T>>;
   static async tryAsync(fn: () => Promise<void>): Promise<Result<void>>;
-  static async tryAsync<T>(fn: () => Promise<Result<T> | T | void>): Promise<Result<T | void>> {
+  static async tryAsync<T>(
+    fn: () => Promise<Result<T> | T | void>,
+  ): Promise<Result<T | void>> {
     try {
       const result = await fn();
       if (result instanceof Result) {
@@ -74,7 +77,7 @@ export class Result<T> {
   get errors(): string[] {
     const hasNoErrors = !this._errors || this._errors.length === 0;
     if (hasNoErrors && this._instance === undefined) {
-      return ['RESULT_UNDEFINED'];
+      return [ResultErrors.UNDEFINED];
     }
     return this._errors as string[];
   }
@@ -110,7 +113,11 @@ export class Result<T> {
     return Result.ok(instances);
   }
 
-  static each<T>(value: unknown, tryCreate: (item: any) => Result<T>, errorCode: string): Result<T>[] {
+  static each<T>(
+    value: unknown,
+    tryCreate: (item: any) => Result<T>,
+    errorCode: string,
+  ): Result<T>[] {
     if (value == null) {
       return [];
     }
@@ -122,7 +129,9 @@ export class Result<T> {
     return value.map((item) => tryCreate(item));
   }
 
-  static async combineAsync<T>(results: Promise<Result<T>>[]): Promise<Result<T[]>> {
+  static async combineAsync<T>(
+    results: Promise<Result<T>>[],
+  ): Promise<Result<T[]>> {
     const rs = await Promise.all(results);
     return Result.combine(rs);
   }

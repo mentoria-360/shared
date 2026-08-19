@@ -8,9 +8,10 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class NonNegative extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_NON_NEGATIVE = 'NON_NEGATIVE_INVALID';
+  private static readonly INVALID_NON_NEGATIVE =
+    SharedErrors.NON_NEGATIVE_INVALID;
 
   constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);

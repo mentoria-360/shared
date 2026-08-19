@@ -8,9 +8,10 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export class Duration extends ValueObject<number, ValueObjectConfig> {
-  private static readonly NEGATIVE_DURATION = 'DURATION_NEGATIVE';
+  private static readonly NEGATIVE_DURATION = SharedErrors.DURATION_NEGATIVE;
   static readonly ONE_MINUTE: number = 60;
   static readonly ONE_HOUR: number = 3600;
   static readonly ONE_DAY: number = 86400;

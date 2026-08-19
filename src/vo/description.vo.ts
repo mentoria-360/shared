@@ -2,13 +2,14 @@ import { Result } from '../base/result';
 import { OptionalConfig, isEmptyValue, resolveVoConfig } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { Text, TextConfig, TextValidationRules } from './text.vo';
+import { SharedErrors } from '../errors';
 
 export class Description extends Text {
   protected static override readonly rules: TextValidationRules = {
     minLength: 20,
     maxLength: 2000,
-    tooShortCode: 'DESCRIPTION_TOO_SHORT',
-    tooLongCode: 'DESCRIPTION_TOO_LONG',
+    tooShortCode: SharedErrors.DESCRIPTION_TOO_SHORT,
+    tooLongCode: SharedErrors.DESCRIPTION_TOO_LONG,
   };
 
   constructor(value: string, config?: TextConfig) {

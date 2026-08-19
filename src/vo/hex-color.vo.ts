@@ -8,9 +8,9 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class HexColor extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_HEX_COLOR = 'HEX_COLOR_INVALID';
+  private static readonly INVALID_HEX_COLOR = SharedErrors.HEX_COLOR_INVALID;
   static readonly HEX_REGEX =
     /^#(?:[0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/;
 

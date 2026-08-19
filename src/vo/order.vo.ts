@@ -8,9 +8,9 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class Order extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_ORDER = 'INVALID_ORDER';
+  private static readonly INVALID_ORDER = SharedErrors.ORDER_INVALID;
 
   constructor(value: number, config?: ValueObjectConfig) {
     super(value, config);
@@ -57,7 +57,9 @@ export class Order extends ValueObject<number, ValueObjectConfig> {
     return Order.tryCreate(value, config);
   }
 
-  public static sort<T extends { order: Order | number }>(itemsInOrder: T[]): T[] {
+  public static sort<T extends { order: Order | number }>(
+    itemsInOrder: T[],
+  ): T[] {
     return itemsInOrder.sort((a, b) => {
       const orderA = a.order instanceof Order ? a.order.value : a.order;
       const orderB = b.order instanceof Order ? b.order.value : b.order;

@@ -1,6 +1,5 @@
 import { Url } from '../../src';
-
-const invalidCode = 'URL_INVALID';
+import { SharedErrors } from '../../src/errors';
 
 describe('Url', () => {
   test('should create valid url with tryCreate', () => {
@@ -24,7 +23,9 @@ describe('Url', () => {
   });
 
   test('should expose domain, protocol, pathname and parameters', () => {
-    const url = Url.create('https://www.google.com/search?q=typescript&hl=pt-BR');
+    const url = Url.create(
+      'https://www.google.com/search?q=typescript&hl=pt-BR',
+    );
 
     expect(url.domain).toBe('www.google.com');
     expect(url.protocol).toBe('https:');
@@ -33,7 +34,9 @@ describe('Url', () => {
   });
 
   test('should validate url with isValid', () => {
-    expect(Url.isValid('https://www.google.com/search?q=typescript')).toBe(true);
+    expect(Url.isValid('https://www.google.com/search?q=typescript')).toBe(
+      true,
+    );
     expect(Url.isValid('www.google.com')).toBe(false);
   });
 
@@ -48,21 +51,21 @@ describe('Url', () => {
     const result = Url.tryCreate('invalid-url');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('URL_INVALID');
+    expect(result.errors).toContain(SharedErrors.URL_INVALID);
   });
 
   test('should fail when value is not a string', () => {
     const result = Url.tryCreate(null as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('URL_INVALID');
+    expect(result.errors).toContain(SharedErrors.URL_INVALID);
   });
 
   test('should map invalid tryCreate error code', () => {
     const result = Url.tryCreate('www.google.com');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors[0]).toBe(invalidCode);
+    expect(result.errors[0]).toBe(SharedErrors.URL_INVALID);
   });
 
   test('should throw when create receives invalid url', () => {

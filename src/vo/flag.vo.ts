@@ -8,9 +8,10 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export class Flag extends ValueObject<boolean, ValueObjectConfig> {
-  private static readonly INVALID_FLAG = 'INVALID_FLAG';
+  private static readonly INVALID_FLAG = SharedErrors.FLAG_INVALID;
 
   constructor(value: boolean, config?: ValueObjectConfig) {
     super(value, config);

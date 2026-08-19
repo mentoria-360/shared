@@ -8,9 +8,9 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
-
+import { SharedErrors } from '../errors';
 export class Url extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_URL = 'URL_INVALID';
+  private static readonly INVALID_URL = SharedErrors.URL_INVALID;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);

@@ -8,9 +8,10 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export class Alias extends ValueObject<string, ValueObjectConfig> {
-  private static readonly INVALID_ALIAS = 'INVALID_ALIAS';
+  private static readonly INVALID_ALIAS = SharedErrors.ALIAS_INVALID;
   static readonly ALIAS_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
   constructor(value: string, config?: ValueObjectConfig) {

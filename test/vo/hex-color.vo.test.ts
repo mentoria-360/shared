@@ -1,5 +1,5 @@
 import { HexColor } from '../../src';
-
+import { SharedErrors } from '../../src/errors';
 describe('HexColor', () => {
   test('should create with valid 6-digit color', () => {
     const result = HexColor.tryCreate('#1A2B3C');
@@ -40,21 +40,21 @@ describe('HexColor', () => {
     const result = HexColor.tryCreate('#ZZZZZZ');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('HEX_COLOR_INVALID');
+    expect(result.errors).toContain(SharedErrors.HEX_COLOR_INVALID);
   });
 
   test('should fail with invalid length', () => {
     const result = HexColor.tryCreate('#12345');
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('HEX_COLOR_INVALID');
+    expect(result.errors).toContain(SharedErrors.HEX_COLOR_INVALID);
   });
 
   test('should fail when value is undefined', () => {
     const result = HexColor.tryCreate(undefined as unknown as string);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('HEX_COLOR_INVALID');
+    expect(result.errors).toContain(SharedErrors.HEX_COLOR_INVALID);
   });
 
   test('should fallback normalized value to empty string when toUpperCase returns undefined', () => {
@@ -67,7 +67,7 @@ describe('HexColor', () => {
     const result = HexColor.tryCreate(valueWithUndefinedUpper);
 
     expect(result.isFailure).toBe(true);
-    expect(result.errors).toContain('HEX_COLOR_INVALID');
+    expect(result.errors).toContain(SharedErrors.HEX_COLOR_INVALID);
   });
 
   test('should create with create when value is valid', () => {
@@ -81,9 +81,11 @@ describe('HexColor', () => {
   });
 
   test('should fallback to default error when an unknown error is thrown', () => {
-    const trimSpy = jest.spyOn(String.prototype, 'trim').mockImplementation(() => {
-      throw {};
-    });
+    const trimSpy = jest
+      .spyOn(String.prototype, 'trim')
+      .mockImplementation(() => {
+        throw {};
+      });
 
     try {
       const result = HexColor.tryCreate('aabbcc');

@@ -1,0 +1,83 @@
+/**
+ * Códigos que o `packages/shared` emite. São a base do catálogo: os módulos de
+ * domínio declaram os seus em `<agregado>/errors.ts` e a borda traduz todos a
+ * partir da união dos catálogos.
+ *
+ * Quem emite o código continua sendo o VO ou o `Result`; o que mora aqui é a
+ * string que atravessa o HTTP, para que a camada de cima possa referenciá-la em
+ * vez de redigitar.
+ */
+export const SharedErrors = {
+  ALIAS_INVALID: 'INVALID_ALIAS',
+  ALIAS_TOO_LONG: 'ALIAS_TOO_LONG',
+  ALIAS_TOO_SHORT: 'ALIAS_TOO_SHORT',
+  CPF_INVALID_CHECK_DIGIT: 'CPF_INVALID_CHECK_DIGIT',
+  CPF_INVALID_FORMAT: 'CPF_INVALID_FORMAT',
+  CPF_INVALID_LENGTH: 'CPF_INVALID_LENGTH',
+  CPF_REPEATED_SEQUENCE: 'CPF_REPEATED_SEQUENCE',
+  DATE_ONLY_INVALID: 'INVALID_DATE_ONLY',
+  DAY_OF_MONTH_INVALID: 'DAY_OF_MONTH_INVALID',
+  DAY_OF_MONTH_OUT_OF_RANGE: 'DAY_OF_MONTH_OUT_OF_RANGE',
+  DESCRIPTION_TOO_LONG: 'DESCRIPTION_TOO_LONG',
+  DESCRIPTION_TOO_SHORT: 'DESCRIPTION_TOO_SHORT',
+  DOT_SEPARATED_NAME_INVALID: 'INVALID_DOT_SEPARATED_NAME',
+  DURATION_INVALID: 'INVALID_DURATION',
+  DURATION_NEGATIVE: 'DURATION_NEGATIVE',
+  ENCRYPTED_PASSWORD_INVALID: 'ENCRYPTED_PASSWORD_INVALID',
+  EMAIL_INVALID: 'INVALID_EMAIL',
+  FLAG_INVALID: 'INVALID_FLAG',
+  HASH_PASSWORD_INVALID: 'INVALID_HASH_PASSWORD',
+  HEX_COLOR_INVALID: 'INVALID_HEX_COLOR',
+  ID_INVALID: 'INVALID_ID',
+  NAME_MUST_HAVE_FIRST_AND_LAST: 'MUST_HAVE_FIRST_AND_LAST_NAME',
+  NAME_TOO_LONG: 'NAME_TOO_LONG',
+  NAME_TOO_SHORT: 'NAME_TOO_SHORT',
+  NON_NEGATIVE_INVALID: 'NON_NEGATIVE_INVALID',
+  ORDER_INVALID: 'INVALID_ORDER',
+  PASSWORD_EMPTY: 'PASSWORD_EMPTY',
+  PERSON_NAME_SURNAME_MISSING: 'PERSON_NAME_SURNAME_MISSING',
+  PERSON_NAME_TOO_LONG: 'PERSON_NAME_TOO_LONG',
+  PERSON_NAME_TOO_SHORT: 'PERSON_NAME_TOO_SHORT',
+  PHONE_INVALID_FORMAT: 'PHONE_INVALID_FORMAT',
+  PHONE_INVALID_LENGTH: 'PHONE_INVALID_LENGTH',
+  SHORT_DESCRIPTION_TOO_LONG: 'SHORT_DESCRIPTION_TOO_LONG',
+  SHORT_DESCRIPTION_TOO_SHORT: 'SHORT_DESCRIPTION_TOO_SHORT',
+  STRONG_PASSWORD_TOO_WEAK: 'STRONG_PASSWORD_TOO_WEAK',
+  TEXT_INVALID: 'INVALID_TEXT',
+  TEXT_TOO_LONG: 'TEXT_TOO_LONG',
+  TEXT_TOO_SHORT: 'TEXT_TOO_SHORT',
+  URL_INVALID: 'INVALID_URL',
+  WEAK_PASSWORD: 'WEAK_PASSWORD',
+} as const;
+
+export type SharedErrorCode = (typeof SharedErrors)[keyof typeof SharedErrors];
+
+/**
+ * Falhas do próprio `Result`, quando o validador reprova sem um código de
+ * domínio para atribuir. Não deveriam chegar ao usuário: se chegam, é defeito.
+ */
+export const ResultErrors = {
+  EXPRESSION_FALSE: 'RESULT_EXPRESSION_FALSE',
+  EXPRESSION_TRUE: 'RESULT_EXPRESSION_TRUE',
+  FAILED: 'RESULT_FAILED',
+  INSTANCE_EMPTY: 'RESULT_INSTANCE_EMPTY',
+  INSTANCE_NOT_EMPTY: 'RESULT_INSTANCE_NOT_EMPTY',
+  INSTANCE_NOT_NULL: 'RESULT_INSTANCE_NOT_NULL',
+  INSTANCE_NULL: 'RESULT_INSTANCE_NULL',
+  UNDEFINED: 'RESULT_UNDEFINED',
+} as const;
+
+export type ResultErrorCode = (typeof ResultErrors)[keyof typeof ResultErrors];
+
+/**
+ * O que todo repositório e toda query emitem, independente do agregado. Ficam
+ * aqui porque `ENTITY_NOT_FOUND` não pertence a user nem a course: pertence ao
+ * contrato de persistência que os dois cumprem.
+ */
+export const RepositoryErrors = {
+  ENTITY_ALREADY_EXISTS: 'ENTITY_ALREADY_EXISTS',
+  ENTITY_NOT_FOUND: 'ENTITY_NOT_FOUND',
+} as const;
+
+export type RepositoryErrorCode =
+  (typeof RepositoryErrors)[keyof typeof RepositoryErrors];
