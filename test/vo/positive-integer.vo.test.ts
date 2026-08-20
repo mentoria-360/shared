@@ -18,6 +18,21 @@ describe('PositiveInteger', () => {
     expect(negative.errors).toContain('POSITIVE_INTEGER_INVALID');
   });
 
+  test('should accept zero when min is 0', () => {
+    const result = PositiveInteger.tryCreate(0, { min: 0 });
+
+    expect(result.isOk).toBe(true);
+    expect(result.instance.value).toBe(0);
+  });
+
+  test('should fail below configured min', () => {
+    const belowMin = PositiveInteger.tryCreate(-1, { min: 0 });
+    const belowDefault = PositiveInteger.tryCreate(4, { min: 5 });
+
+    expect(belowMin.isFailure).toBe(true);
+    expect(belowDefault.isFailure).toBe(true);
+  });
+
   test('should fail when value is not integer', () => {
     const result = PositiveInteger.tryCreate(1.5);
 

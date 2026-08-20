@@ -9,16 +9,21 @@ import {
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
 
-export class PositiveInteger extends ValueObject<number, ValueObjectConfig> {
-  private static readonly INVALID_POSITIVE_INTEGER = 'POSITIVE_INTEGER_INVALID';
+export interface PositiveIntegerConfig extends ValueObjectConfig {
+  min?: number;
+}
 
-  constructor(value: number, config?: ValueObjectConfig) {
+export class PositiveInteger extends ValueObject<number, PositiveIntegerConfig> {
+  private static readonly INVALID_POSITIVE_INTEGER = 'POSITIVE_INTEGER_INVALID';
+  public static readonly DEFAULT_MIN = 1;
+
+  constructor(value: number, config?: PositiveIntegerConfig) {
     super(value, config);
   }
 
   public static create(
     value: number,
-    metaOrConfig?: ValueObjectConfig,
+    metaOrConfig?: PositiveIntegerConfig,
   ): PositiveInteger {
     const result = PositiveInteger.tryCreate(value, metaOrConfig);
     result.validator.throwsIfFailed();
@@ -27,25 +32,26 @@ export class PositiveInteger extends ValueObject<number, ValueObjectConfig> {
 
   public static tryCreate(
     value: number | null | undefined,
-    config: OptionalConfig<ValueObjectConfig>,
+    config: OptionalConfig<PositiveIntegerConfig>,
   ): Result<PositiveInteger | null>;
   public static tryCreate(
     value: number,
-    metaOrConfig?: Metadata | ValueObjectConfig,
+    metaOrConfig?: Metadata | PositiveIntegerConfig,
   ): Result<PositiveInteger>;
   public static tryCreate(
     value: number | null | undefined,
-    metaOrConfig?: ValueObjectConfig,
+    metaOrConfig?: PositiveIntegerConfig,
   ): Result<PositiveInteger | null> {
     if (metaOrConfig?.optional && isEmptyValue(value)) {
       return Result.ok<PositiveInteger | null>(null);
     }
     try {
+      const min = metaOrConfig?.min ?? PositiveInteger.DEFAULT_MIN;
       if (
         typeof value !== 'number' ||
         !Number.isFinite(value) ||
         !Number.isInteger(value) ||
-        value < 1
+        value < min
       ) {
         throw new ValidationError({
           code: PositiveInteger.INVALID_POSITIVE_INTEGER,
