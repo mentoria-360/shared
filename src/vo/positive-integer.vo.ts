@@ -8,13 +8,18 @@ import {
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
 import { ValidationError } from '../base/validation-error';
+import { SharedErrors } from '../errors';
 
 export interface PositiveIntegerConfig extends ValueObjectConfig {
   min?: number;
 }
 
-export class PositiveInteger extends ValueObject<number, PositiveIntegerConfig> {
-  private static readonly INVALID_POSITIVE_INTEGER = 'POSITIVE_INTEGER_INVALID';
+export class PositiveInteger extends ValueObject<
+  number,
+  PositiveIntegerConfig
+> {
+  private static readonly INVALID_POSITIVE_INTEGER =
+    SharedErrors.POSITIVE_INTEGER_INVALID;
   public static readonly DEFAULT_MIN = 1;
 
   constructor(value: number, config?: PositiveIntegerConfig) {
