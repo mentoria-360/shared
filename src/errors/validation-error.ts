@@ -1,4 +1,4 @@
-import { Message } from './message';
+import { Message } from '../base/message';
 
 export class ValidationError extends Error {
   readonly messages: Message[];

@@ -5,7 +5,7 @@ import {
   ValueObject,
   ValueObjectConfig,
 } from '../base';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { SharedErrors } from '../errors';
 export class Phone extends ValueObject<string, ValueObjectConfig> {
   public static readonly INVALID_FORMAT: string =

@@ -7,7 +7,7 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { SharedErrors } from '../errors';
 export class Order extends ValueObject<number, ValueObjectConfig> {
   private static readonly INVALID_ORDER = SharedErrors.ORDER_INVALID;

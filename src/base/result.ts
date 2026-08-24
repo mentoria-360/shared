@@ -1,6 +1,6 @@
 import { ResultErrors } from '../errors';
 import { ResultValidator } from './result-validator';
-import { ValidationError } from './validation-error';
+import { ValidationError } from '../errors/validation-error';
 
 function extractError(error: unknown): string | string[] {
   if (error instanceof ValidationError) {

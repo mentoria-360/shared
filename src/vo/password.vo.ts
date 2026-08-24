@@ -7,7 +7,7 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { SharedErrors } from '../errors';
 export class Password extends ValueObject<string, ValueObjectConfig> {
   private static readonly EMPTY_PASSWORD = SharedErrors.PASSWORD_EMPTY;

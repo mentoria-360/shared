@@ -6,5 +6,5 @@ export * from './result';
 export * from './result-error';
 export * from './result-validator';
 export * from './use-case';
-export * from './validation-error';
+export * from '../errors/validation-error';
 export * from './vo';

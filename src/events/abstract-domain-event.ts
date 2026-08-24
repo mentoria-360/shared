@@ -1,9 +1,16 @@
 import { Result } from '../base/result';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { Id } from '../vo/id.vo';
-import { DomainEvent, DomainEventMetadata, DomainEventPayload } from './domain-event';
+import {
+  DomainEvent,
+  DomainEventMetadata,
+  DomainEventPayload,
+} from './domain-event';
 
-export interface AbstractDomainEventProps<Payload extends DomainEventPayload, Metadata extends DomainEventMetadata> {
+export interface AbstractDomainEventProps<
+  Payload extends DomainEventPayload,
+  Metadata extends DomainEventMetadata,
+> {
   id?: string;
   occurredAt?: Date;
   metadata?: Metadata;
@@ -29,7 +36,8 @@ export interface ResolvedDomainEventProps<
 export abstract class AbstractDomainEvent<
   Payload extends DomainEventPayload = DomainEventPayload,
   Metadata extends DomainEventMetadata = DomainEventMetadata,
-> implements DomainEvent<Payload, Metadata> {
+> implements DomainEvent<Payload, Metadata>
+{
   readonly id: string;
   readonly type: string;
   readonly aggregateType: string;
@@ -75,13 +83,21 @@ export abstract class AbstractDomainEvent<
     return result.instance;
   }
 
-  private static resolveProps<Payload extends DomainEventPayload, Metadata extends DomainEventMetadata>(
+  private static resolveProps<
+    Payload extends DomainEventPayload,
+    Metadata extends DomainEventMetadata,
+  >(
     props: AbstractDomainEventProps<Payload, Metadata>,
   ): ResolvedDomainEventProps<Payload, Metadata> {
     const id = Id.create(props.id, { meta: { attribute: 'id' } }).value;
     const type = AbstractDomainEvent.ensureRequiredString(props.type, 'type');
-    const aggregateType = AbstractDomainEvent.ensureRequiredString(props.aggregateType, 'aggregate-type');
-    const aggregateIdResult = Id.required(props.aggregateId, { meta: { attribute: 'aggregateId' } });
+    const aggregateType = AbstractDomainEvent.ensureRequiredString(
+      props.aggregateType,
+      'aggregate-type',
+    );
+    const aggregateIdResult = Id.required(props.aggregateId, {
+      meta: { attribute: 'aggregateId' },
+    });
     aggregateIdResult.validator.throwsIfFailed();
     const aggregateId = aggregateIdResult.instance.value;
 
@@ -96,7 +112,10 @@ export abstract class AbstractDomainEvent<
     };
   }
 
-  private static ensureRequiredString(value: string, attribute: 'type' | 'aggregate-type'): string {
+  private static ensureRequiredString(
+    value: string,
+    attribute: 'type' | 'aggregate-type',
+  ): string {
     const normalizedValue = value?.trim();
     if (!normalizedValue) {
       throw new ValidationError({ code: `domain-event.${attribute}.invalid` });

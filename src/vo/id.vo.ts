@@ -7,7 +7,7 @@ import {
   resolveVoConfig,
 } from '../base/vo';
 import { Metadata } from '../base/metadata';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { v4 as uuidv4 } from 'uuid';
 import { SharedErrors } from '../errors';
 export class Id extends ValueObject<string, ValueObjectConfig> {

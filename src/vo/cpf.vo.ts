@@ -5,7 +5,7 @@ import {
   ValueObject,
   ValueObjectConfig,
 } from '../base';
-import { ValidationError } from '../base/validation-error';
+import { ValidationError } from '../errors/validation-error';
 import { SharedErrors } from '../errors';
 
 export interface CpfConfig extends ValueObjectConfig {
