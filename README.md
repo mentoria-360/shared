@@ -186,8 +186,6 @@ Formato: `entidade.motivo` (ex.: `email.invalid`). Disponíveis em `result.error
 | `Description` | `description.too-short`, `description.too-long` |
 | `Duration` | `duration.negative` |
 | `Email` | `email.invalid` |
-| `EncryptedPassword` | `encrypted-password.invalid` |
-| `HashPassword` | `hash-password.invalid` |
 | `HexColor` | `hex-color.invalid` |
 | `Id` | `id.invalid` |
 | `NonNegative` | `non-negative.invalid` |
@@ -220,10 +218,8 @@ Formato: `entidade.motivo` (ex.: `email.invalid`). Disponíveis em `result.error
 
 | VO                  | Propósito                                                                        |
 | ------------------- | -------------------------------------------------------------------------------- |
-| `Password`          | Senha plana não-vazia (sem regras de força)                                      |
+| `Password`          | Senha não-vazia (texto ou hash); `isHash()` detecta bcrypt (`$2[aby]$...`)       |
 | `StrongPassword`    | Mín. 8 chars, maiúscula, minúscula, número, caractere especial                   |
-| `HashPassword`      | Hash bcrypt validado por regex (`$2[aby]$...`); expõe `isValid()`              |
-| `EncryptedPassword` | Mesmo formato que `HashPassword` (usa `HashPassword.isValid`); nome semântico para armazenamento |
 
 ### Números e datas
 

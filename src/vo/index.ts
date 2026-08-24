@@ -5,8 +5,6 @@ export * from './day-of-month.vo';
 export * from './description.vo';
 export * from './duration.vo';
 export * from './email.vo';
-export * from './encrypted-password.vo';
-export * from './hash-password.vo';
 export * from './flag.vo';
 export * from './hex-color.vo';
 export * from './id.vo';

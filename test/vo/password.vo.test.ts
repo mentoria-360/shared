@@ -32,4 +32,19 @@ describe('Password', () => {
   test('should throw via create when password is invalid', () => {
     expect(() => Password.create('')).toThrow();
   });
+
+  test('should accept bcrypt hash as a non-empty password', () => {
+    const hash =
+      '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+    expect(Password.create(hash).value).toBe(hash);
+    expect(Password.tryCreate(hash).isOk).toBe(true);
+  });
+
+  test('should detect bcrypt hash via isHash', () => {
+    const hash =
+      '  $2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy  ';
+    expect(Password.isHash(hash)).toBe(true);
+    expect(Password.isHash('Aa123456!')).toBe(false);
+    expect(Password.isHash(undefined)).toBe(false);
+  });
 });

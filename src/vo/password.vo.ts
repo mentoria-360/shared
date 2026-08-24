@@ -11,9 +11,14 @@ import { ValidationError } from '../errors/validation-error';
 import { SharedErrors } from '../errors';
 export class Password extends ValueObject<string, ValueObjectConfig> {
   private static readonly EMPTY_PASSWORD = SharedErrors.PASSWORD_EMPTY;
+  private static readonly HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 
   constructor(value: string, config?: ValueObjectConfig) {
     super(value, config);
+  }
+
+  public static isHash(hash?: string): boolean {
+    return Password.HASH_REGEX.test(hash?.trim() ?? '');
   }
 
   public static create(
