@@ -1,53 +1,31 @@
-import { Result } from '../base/result';
-import { OptionalConfig, isEmptyValue, resolveVoConfig } from '../base/vo';
-import { Metadata } from '../base/metadata';
-import { Text, TextConfig, TextValidationRules } from './text.vo';
+import { OptionalConfig, Result } from '../base';
 import { SharedErrors } from '../errors';
+import { Text, TextConfig } from './text.vo';
 
 export class Description extends Text {
-  protected static override readonly rules: TextValidationRules = {
-    minLength: 20,
-    maxLength: 2000,
-    tooShortCode: SharedErrors.DESCRIPTION_TOO_SHORT,
-    tooLongCode: SharedErrors.DESCRIPTION_TOO_LONG,
-  };
+  protected static override readonly TOO_SHORT: string =
+    SharedErrors.DESCRIPTION_TOO_SHORT;
+  protected static override readonly TOO_LONG: string =
+    SharedErrors.DESCRIPTION_TOO_LONG;
+  protected static override readonly DEFAULT_MIN_LENGTH: number = 20;
+  protected static override readonly DEFAULT_MAX_LENGTH = 2000;
 
-  constructor(value: string, config?: TextConfig) {
-    super(value, config);
-  }
-
-  public static create(value: string, metaOrConfig?: TextConfig): Description {
-    const result = Description.tryCreate(value, metaOrConfig);
-    result.validator.throwsIfFailed();
-    return result.instance;
+  public static create(value: string, config?: TextConfig): Description {
+    return super.create(value, config) as Description;
   }
 
   public static tryCreate(
-    value: string | null | undefined,
+    text: string | null | undefined,
     config: OptionalConfig<TextConfig>,
   ): Result<Description | null>;
   public static tryCreate(
-    value: string,
-    metaOrConfig?: Metadata | TextConfig,
+    text: string,
+    config?: TextConfig,
   ): Result<Description>;
   public static tryCreate(
-    value: string | null | undefined,
-    metaOrConfig?: TextConfig,
+    text: string | null | undefined,
+    config?: TextConfig,
   ): Result<Description | null> {
-    if (metaOrConfig?.optional && isEmptyValue(value)) {
-      return Result.ok<Description | null>(null);
-    }
-    try {
-      const config = resolveVoConfig(metaOrConfig) as TextConfig;
-      const trimmed = Text.validateAndTrim(
-        value as string,
-        config,
-        Description.rules,
-      );
-
-      return Result.ok(new Description(trimmed, config));
-    } catch (error: any) {
-      return Result.fail(error.message);
-    }
+    return (super.tryCreate as typeof Description.tryCreate)(text, config);
   }
 }
