@@ -11,7 +11,9 @@ export class ShortDescription extends Text {
   protected static override readonly DEFAULT_MAX_LENGTH = 80;
 
   public static create(value: string, config?: TextConfig): ShortDescription {
-    return super.create(value, config) as ShortDescription;
+    const result = ShortDescription.tryCreate(value, config);
+    result.validator.throwsIfFailed();
+    return result.instance;
   }
 
   public static tryCreate(
@@ -26,6 +28,8 @@ export class ShortDescription extends Text {
     text: string | null | undefined,
     config?: TextConfig,
   ): Result<ShortDescription | null> {
-    return (super.tryCreate as typeof ShortDescription.tryCreate)(text, config);
+    return super.tryCreate(text as string, config) as Result<
+      ShortDescription | null
+    >;
   }
 }

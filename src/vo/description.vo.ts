@@ -11,7 +11,9 @@ export class Description extends Text {
   protected static override readonly DEFAULT_MAX_LENGTH = 2000;
 
   public static create(value: string, config?: TextConfig): Description {
-    return super.create(value, config) as Description;
+    const result = Description.tryCreate(value, config);
+    result.validator.throwsIfFailed();
+    return result.instance;
   }
 
   public static tryCreate(
@@ -26,6 +28,6 @@ export class Description extends Text {
     text: string | null | undefined,
     config?: TextConfig,
   ): Result<Description | null> {
-    return (super.tryCreate as typeof Description.tryCreate)(text, config);
+    return super.tryCreate(text as string, config) as Result<Description | null>;
   }
 }
