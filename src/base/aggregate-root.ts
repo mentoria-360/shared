@@ -55,7 +55,13 @@ export abstract class AggregateRoot<
       return clonedResult;
     }
 
-    this.applyCloneEvents(clonedResult.instance as unknown as this, diff);
+    // Behavior methods return clones, so pending events must follow the new instance
+    // or a chain like `order.pay().instance.confirm()` would drop the first event.
+    // The previous instance keeps its own list untouched.
+    const cloned = clonedResult.instance as unknown as this;
+    cloned.pendingEvents = [...this.pendingEvents, ...cloned.pendingEvents];
+
+    this.applyCloneEvents(cloned, diff);
 
     return clonedResult;
   }

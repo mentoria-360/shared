@@ -91,7 +91,18 @@ if (pedido.hasEvents()) {
 }
 ```
 
-Métodos: `addEvent` (protected), `hasEvents`, `peekEvents`, `pullEvents`, `clearEvents`. `cloneWith` propaga eventos de clone via hook `onClone`.
+Métodos: `addEvent` (protected), `hasEvents`, `peekEvents`, `pullEvents`, `clearEvents`. `cloneWith` leva os eventos pendentes para o clone (a instância anterior mantém os seus) e depois chama o hook `onClone`. Como métodos de comportamento imutáveis devolvem o clone, o evento deve ser adicionado na nova instância:
+
+```typescript
+confirmar(): Result<Pedido> {
+  const next = this.cloneWith({ status: 'CONFIRMADO' });
+  if (next.isFailure) return next;
+  next.instance.addEvent(PedidoConfirmadoEvent.create({ aggregateId: this.id }));
+  return next;
+}
+
+// pedido.pagar().instance.confirmar().instance.pullEvents() → [PedidoPago, PedidoConfirmado]
+```
 
 ### `ValueObject<T, Config>`
 

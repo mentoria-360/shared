@@ -1,4 +1,4 @@
-import { AggregateRoot, EntityProps } from '../../src/base';
+import { AggregateRoot, EntityDiff, EntityProps, Result } from '../../src/base';
 import { DomainEvent } from '../../src/events';
 
 type TestEvent = DomainEvent<{ value: number }, { actorId: string }>;
@@ -65,5 +65,87 @@ describe('AggregateRoot', () => {
 
     expect(source.hasEvents()).toBe(false);
     expect(source.peekEvents()).toEqual([]);
+  });
+});
+
+interface OrderProps extends EntityProps {
+  status: string;
+}
+
+class OrderForTest extends AggregateRoot<OrderForTest, OrderProps, TestEvent> {
+  static cloneHookEvent: TestEvent | null = null;
+
+  private constructor(props: OrderProps) {
+    super(props);
+  }
+
+  static tryCreate(props: OrderProps): Result<OrderForTest> {
+    if (!props.status) return Result.fail('STATUS_REQUIRED');
+    return Result.ok(new OrderForTest(props));
+  }
+
+  get status() {
+    return this.props.status;
+  }
+
+  changeStatus(status: string, event: TestEvent): Result<OrderForTest> {
+    const next = this.cloneWith({ status });
+    if (next.isFailure) return next;
+    next.instance.addEvent(event);
+    return next;
+  }
+
+  protected override onClone(_previous: this, _diff: EntityDiff<OrderProps>): void {
+    if (OrderForTest.cloneHookEvent) this.addEvent(OrderForTest.cloneHookEvent);
+  }
+}
+
+describe('AggregateRoot.cloneWith', () => {
+  const orderId = '550e8400-e29b-41d4-a716-446655440200';
+
+  afterEach(() => {
+    OrderForTest.cloneHookEvent = null;
+  });
+
+  test('should keep the events of every step in a chain of clones', () => {
+    const order = OrderForTest.tryCreate({ id: orderId, status: 'PLACED' }).instance;
+
+    const paid = order.changeStatus('PAID', eventA).instance;
+    const confirmed = paid.changeStatus('CONFIRMED', eventB).instance;
+
+    expect(confirmed.status).toBe('CONFIRMED');
+    expect(confirmed.pullEvents()).toEqual([eventA, eventB]);
+  });
+
+  test('should leave the pending events of the previous instance untouched', () => {
+    const order = OrderForTest.tryCreate({ id: orderId, status: 'PLACED' }).instance;
+    const paid = order.changeStatus('PAID', eventA).instance;
+
+    const confirmed = paid.changeStatus('CONFIRMED', eventB).instance;
+    confirmed.pullEvents();
+
+    expect(order.peekEvents()).toEqual([]);
+    expect(paid.peekEvents()).toEqual([eventA]);
+    expect(confirmed.hasEvents()).toBe(false);
+  });
+
+  test('should add events from onClone after the carried ones', () => {
+    const order = OrderForTest.tryCreate({ id: orderId, status: 'PLACED' }).instance;
+    const paid = order.changeStatus('PAID', eventA).instance;
+
+    OrderForTest.cloneHookEvent = eventB;
+    const cloned = paid.cloneWith({ status: 'CONFIRMED' }).instance;
+
+    expect(cloned.peekEvents()).toEqual([eventA, eventB]);
+  });
+
+  test('should not carry events when the clone fails validation', () => {
+    const order = OrderForTest.tryCreate({ id: orderId, status: 'PLACED' }).instance;
+    const paid = order.changeStatus('PAID', eventA).instance;
+
+    const failed = paid.cloneWith({ status: '' });
+
+    expect(failed.isFailure).toBe(true);
+    expect(paid.peekEvents()).toEqual([eventA]);
   });
 });
